@@ -10,6 +10,17 @@
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 
     <style>
+      /* 这个页面默认隐藏鼠标，按 ESC 再显示 */
+      body.exhibition-hide-cursor,
+      body.exhibition-hide-cursor * {
+        cursor: none !important;
+      }
+
+      body.exhibition-hide-cursor.show-cursor,
+      body.exhibition-hide-cursor.show-cursor * {
+        cursor: auto !important;
+      }
+
       .back-home {
         position: fixed;
         top: 20px;
