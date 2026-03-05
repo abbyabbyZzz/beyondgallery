@@ -1,0 +1,129 @@
+/* ===== Gallery Beyond — Shared Styles ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  overflow: hidden;
+  background-color: #050508;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+textarea,
+select,
+a {
+  font-family: inherit;
+}
+
+canvas { display: block; }
+
+/* ===== Global BGM toggle ===== */
+.bgm-toggle {
+  position: fixed;
+  left: 24px;
+  bottom: 24px;
+  z-index: 40;
+  padding: 10px 26px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(5, 5, 8, 0.7);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-weight: 400;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  backdrop-filter: blur(12px);
+}
+
+.bgm-toggle:hover {
+  background: rgba(255, 255, 255, 0.9);
+  color: #050508;
+  border-color: rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.bgm-toggle[data-muted='1'] {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(5, 5, 8, 0.8);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ===== Transition Overlay ===== */
+#transition-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+#transition-overlay.active {
+  pointer-events: all;
+  opacity: 1;
+}
+#transition-canvas {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+}
+#transition-label {
+  position: absolute;
+  bottom: calc(50% - 130px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0);
+  transition: color 0.4s;
+  white-space: nowrap;
+  font-weight: 400;
+}
+#transition-overlay.active #transition-label {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ===== Page fade-in ===== */
+.page-wrapper {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.page-wrapper.visible {
+  opacity: 1;
+}
+
+/* ===== Responsive tweaks: tablet / mobile ===== */
+@media (max-width: 1024px) {
+  .bgm-toggle {
+    bottom: 18px;
+    left: 20px;
+    padding: 8px 20px;
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+}
+
+@media (max-width: 768px) {
+  .bgm-toggle {
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 16px;
+    padding: 8px 18px;
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+}
+
