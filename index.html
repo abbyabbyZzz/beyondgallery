@@ -3,7 +3,589 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#050508" />
+    <meta name="theme-color" content="#050508<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#050508" />
+  <title>Gallery Beyond - Class of 2026</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    /* ===== Homepage specific ===== */
+    #home-ui {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    #home-title {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 60px;
+      user-select: none;
+    }
+
+    #home-title h1 {
+      font-size: clamp(1.8rem, 5vw, 3.2rem);
+      font-weight: 300;
+      letter-spacing: 10px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    #home-title p {
+      margin-top: 12px;
+      font-size: 11px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.4);
+      font-weight: 400;
+    }
+
+    #planet-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      cursor: default;
+    }
+
+    #home-hint {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      padding-bottom: 40px;
+      user-select: none;
+    }
+
+    #home-hint p {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.3);
+      font-weight: 400;
+      transition: color 0.3s;
+    }
+
+    /* ===== Sound experience choice (pre-home) ===== */
+    #sound-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* 背景交给星盘转场来画，这里保持透明，方便看到后面的 loading 星盘 */
+      background: transparent;
+      opacity: 1;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    #sound-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .sound-card {
+      width: min(480px, 92vw);
+      padding: 32px 32px 26px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      /* 几乎完全透明，只保留一点点微光，尽量不挡住星盘 */
+      background: radial-gradient(circle at 50% 0, rgba(255, 255, 255, 0.02), transparent 60%);
+      backdrop-filter: blur(2px);
+      text-align: center;
+    }
+
+    .sound-label {
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: 14px;
+    }
+
+    .sound-title {
+      font-size: clamp(1.4rem, 3.2vw, 1.8rem);
+      font-weight: 300;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.95);
+      margin-bottom: 18px;
+    }
+
+    .sound-desc {
+      font-size: 13px;
+      line-height: 1.7;
+      color: rgba(255, 255, 255, 0.65);
+      margin-bottom: 26px;
+    }
+
+    .sound-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .sound-btn {
+      min-width: 150px;
+      padding: 12px 26px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      background: transparent;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      font-weight: 400;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      backdrop-filter: blur(14px);
+    }
+
+    .sound-btn.primary {
+      background: rgba(255, 255, 255, 0.9);
+      color: #050508;
+      border-color: rgba(255, 255, 255, 0.95);
+    }
+
+    .sound-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+    }
+
+    .sound-note {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    @media (max-width: 768px) {
+      #home-title {
+        padding-top: 32px;
+      }
+      #home-title h1 {
+        letter-spacing: 6px;
+      }
+      #home-title p {
+        letter-spacing: 3px;
+      }
+      .sound-card {
+        padding: 24px 20px 20px;
+        border-radius: 20px;
+      }
+      .sound-label,
+      .sound-note {
+        font-size: 10px;
+        letter-spacing: 2px;
+      }
+      .sound-desc {
+        font-size: 12px;
+      }
+      .sound-buttons {
+        gap: 10px;
+      }
+      .sound-btn {
+        min-width: 140px;
+        padding: 10px 20px;
+        font-size: 10px;
+        letter-spacing: 2px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Experience choice before entering home -->
+  <div id="sound-overlay">
+    <div class="sound-card">
+      <div class="sound-label">Experience</div>
+      <div class="sound-title">Enter with sound?</div>
+      <p class="sound-desc">
+        Choose whether to experience Gallery Beyond with ambience and music.
+      </p>
+      <div class="sound-buttons">
+        <button id="sound-with" class="sound-btn primary">With sound</button>
+        <button id="sound-without" class="sound-btn">Without sound</button>
+      </div>
+      <p class="sound-note">You can change this later with the corner toggle.</p>
+    </div>
+  </div>
+
+  <div id="home-ui">
+    <div id="home-title">
+      <h1>Gallery Beyond</h1>
+      <p>Class of 2026 Graduation Exhibition</p>
+    </div>
+    <div id="home-hint">
+      <p id="hint-text">Select a destination</p>
+    </div>
+  </div>
+
+  <canvas id="planet-canvas"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="js/starfield.js"></script>
+  <script src="js/bgm.js"></script>
+  <script src="js/transition.js"></script>
+  <script>
+    (function () {
+      var canvas = document.getElementById('planet-canvas');
+      var ctx = canvas.getContext('2d');
+      var hintText = document.getElementById('hint-text');
+      var soundOverlay = document.getElementById('sound-overlay');
+      var soundWith = document.getElementById('sound-with');
+      var soundWithout = document.getElementById('sound-without');
+
+      // 处理“有声 / 无声”体验选择，只在第一次进入时显示
+      (function initSoundChoice() {
+        var alreadySet = false;
+        try {
+          alreadySet = sessionStorage.getItem('bgmPreferenceSet') === '1';
+        } catch (e) {}
+
+        if (alreadySet) {
+          if (soundOverlay) {
+            soundOverlay.classList.add('hidden');
+          }
+          return;
+        }
+
+        // 第一次进入时，启动星盘 loading 动画作为背景
+        if (typeof window.startIdleAstrolabe === 'function') {
+          try {
+            window.startIdleAstrolabe();
+          } catch (e) {}
+        }
+
+        function choose(wantSound) {
+          try {
+            sessionStorage.setItem('bgmPreferenceSet', '1');
+            sessionStorage.setItem('bgmMuted', wantSound ? '0' : '1');
+          } catch (e) {}
+
+          if (typeof window.__bgmApplyPreference === 'function') {
+            window.__bgmApplyPreference(!wantSound);
+          }
+
+          if (soundOverlay) {
+            soundOverlay.classList.add('hidden');
+          }
+
+          // 关闭用于 sound 选择页的星盘背景
+          if (typeof window.stopIdleAstrolabe === 'function') {
+            try {
+              window.stopIdleAstrolabe();
+            } catch (e) {}
+          }
+        }
+
+        if (soundWith) {
+          soundWith.addEventListener('click', function () {
+            choose(true);
+          });
+        }
+        if (soundWithout) {
+          soundWithout.addEventListener('click', function () {
+            choose(false);
+          });
+        }
+      })();
+
+      var PLANETS = [
+        {
+          label: 'Exhibition',
+          href: 'exhibition/index.html',
+          subtitle: 'Enter the Gallery',
+          angle: 0,
+          speed: 0,
+          ringCount: 3,
+          parallaxDepth: 0.6
+        },
+        {
+          label: 'About',
+          href: 'about/index.html',
+          subtitle: 'The Vision',
+          angle: Math.PI * 0.8,
+          speed: 0.00025,
+          ringCount: 2,
+          parallaxDepth: 1.0
+        }
+      ];
+
+      var mouse = { x: 0, y: 0, rawX: 0, rawY: 0 };
+      var smoothMouse = { x: 0, y: 0 };
+      var hoveredIdx = -1;
+      var hoverAnim = [0, 0];
+      var time = 0;
+      var fadeIn = 0;
+
+      function lerp(a, b, t) { return a + (b - a) * t; }
+
+      function resize() {
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = window.innerWidth * dpr;
+        canvas.height = window.innerHeight * dpr;
+        canvas.style.width = window.innerWidth + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      document.addEventListener('mousemove', function (e) {
+        mouse.rawX = e.clientX;
+        mouse.rawY = e.clientY;
+        mouse.x = (e.clientX / window.innerWidth - 0.5) * 2;
+        mouse.y = (e.clientY / window.innerHeight - 0.5) * 2;
+      });
+
+      canvas.addEventListener('click', function () {
+        if (hoveredIdx >= 0) {
+          navigateWithTransition(PLANETS[hoveredIdx].href);
+        }
+      });
+
+      function getSizes() {
+        var minDim = Math.min(window.innerWidth, window.innerHeight);
+        var mainR = minDim * 0.125;
+        return {
+          mainR: mainR,
+          secR: minDim * 0.07,
+          orbitDist: mainR * 2.8
+        };
+      }
+
+      function drawSphere(x, y, r, alpha, ht, rings, t) {
+        var scale = 1 + ht * 0.15;
+        var breathe = 1 + Math.sin(t * 1.2) * 0.008;
+        var fr = r * scale * breathe;
+
+        // Glow
+        var ga = lerp(0.03, 0.18, ht);
+        var gr = fr * lerp(1.8, 3.2, ht);
+        var g = ctx.createRadialGradient(x, y, fr * 0.2, x, y, gr);
+        g.addColorStop(0, 'rgba(255,255,255,' + ga * alpha + ')');
+        g.addColorStop(0.5, 'rgba(200,220,255,' + ga * alpha * 0.3 + ')');
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(x, y, gr, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Outer circle
+        ctx.beginPath();
+        ctx.arc(x, y, fr, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255,255,255,' + alpha * lerp(0.35, 0.85, ht) + ')';
+        ctx.lineWidth = lerp(0.6, 1.4, ht);
+        ctx.stroke();
+
+        // Inner circle
+        ctx.beginPath();
+        ctx.arc(x, y, fr * 0.7, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255,255,255,' + alpha * lerp(0.06, 0.15, ht) + ')';
+        ctx.lineWidth = 0.4;
+        ctx.stroke();
+
+        // Latitude lines
+        var latCount = Math.max(3, Math.floor(fr / 14));
+        for (var i = 1; i < latCount; i++) {
+          var frac = i / latCount;
+          var ly = y - fr + frac * 2 * fr;
+          var lrx = Math.sqrt(fr * fr - (ly - y) * (ly - y));
+          if (lrx > 3) {
+            ctx.beginPath();
+            ctx.ellipse(x, ly, lrx, lrx * 0.1, 0, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255,255,255,' + alpha * lerp(0.08, 0.2, ht) + ')';
+            ctx.lineWidth = 0.4;
+            ctx.stroke();
+          }
+        }
+
+        // Rotating meridians
+        for (var m = 0; m < 4; m++) {
+          var rot = (m / 4) * Math.PI + t * lerp(0.4, 1.2, ht);
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.beginPath();
+          ctx.ellipse(0, 0, fr * Math.abs(Math.cos(rot)), fr, 0, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(255,255,255,' + alpha * lerp(0.08, 0.22, ht) + ')';
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Orbital rings
+        for (var ri = 0; ri < rings; ri++) {
+          var tilt = 0.32 + ri * 0.22;
+          var ringR = fr * (1.35 + ri * 0.3);
+          var ringRot = t * (0.3 + ri * 0.2);
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.beginPath();
+          ctx.ellipse(0, 0, ringR, ringR * Math.sin(tilt), ringRot, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(255,255,255,' + alpha * lerp(0.12, 0.35, ht) + ')';
+          ctx.lineWidth = lerp(0.4, 0.8, ht);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Center dot
+        var cr = lerp(2, 4, ht);
+        ctx.beginPath();
+        ctx.arc(x, y, cr, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,' + alpha * lerp(0.15, 0.5, ht) + ')';
+        ctx.fill();
+
+        if (ht > 0.1) {
+          var cg = ctx.createRadialGradient(x, y, 0, x, y, cr * 6);
+          cg.addColorStop(0, 'rgba(255,255,255,' + alpha * ht * 0.15 + ')');
+          cg.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.fillStyle = cg;
+          ctx.beginPath();
+          ctx.arc(x, y, cr * 6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function animate() {
+        time += 0.016;
+        fadeIn = Math.min(fadeIn + 0.015, 1);
+        var w = window.innerWidth;
+        var h = window.innerHeight;
+        var sizes = getSizes();
+
+        smoothMouse.x = lerp(smoothMouse.x, mouse.x, 0.06);
+        smoothMouse.y = lerp(smoothMouse.y, mouse.y, 0.06);
+
+        ctx.clearRect(0, 0, w, h);
+
+        var cx = w / 2;
+        var cy = h / 2;
+        var px = smoothMouse.x * 30;
+        var py = smoothMouse.y * 30;
+
+        // Update angles
+        for (var i = 0; i < PLANETS.length; i++) {
+          PLANETS[i].angle += PLANETS[i].speed;
+        }
+
+        // Compute positions
+        var positions = [];
+        for (var j = 0; j < PLANETS.length; j++) {
+          var p = PLANETS[j];
+          var orbitR = j === 0 ? 0 : sizes.orbitDist;
+          var baseR = j === 0 ? sizes.mainR : sizes.secR;
+          var posX = cx + Math.cos(p.angle) * orbitR + px * p.parallaxDepth;
+          var posY = cy + Math.sin(p.angle) * orbitR * 0.35 + py * p.parallaxDepth;
+          positions.push({ x: posX, y: posY, baseR: baseR });
+        }
+
+        // Orbit path (dashed)
+        if (positions.length >= 2) {
+          var ocx = cx + px * 0.6;
+          var ocy = cy + py * 0.6;
+          ctx.beginPath();
+          ctx.ellipse(ocx, ocy, sizes.orbitDist, sizes.orbitDist * 0.35, 0, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(255,255,255,' + fadeIn * 0.04 + ')';
+          ctx.lineWidth = 0.5;
+          ctx.setLineDash([3, 8]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Connection line
+          ctx.beginPath();
+          ctx.moveTo(positions[0].x, positions[0].y);
+          ctx.lineTo(positions[1].x, positions[1].y);
+          ctx.strokeStyle = 'rgba(255,255,255,' + fadeIn * 0.04 + ')';
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+
+        // Hit test
+        var newHovered = -1;
+        for (var h2 = 0; h2 < positions.length; h2++) {
+          var dist = Math.sqrt(
+            Math.pow(mouse.rawX - positions[h2].x, 2) +
+            Math.pow(mouse.rawY - positions[h2].y, 2)
+          );
+          if (dist < positions[h2].baseR * 1.6) newHovered = h2;
+        }
+        hoveredIdx = newHovered;
+
+        // Smooth hover animation
+        for (var k = 0; k < PLANETS.length; k++) {
+          var target = newHovered === k ? 1 : 0;
+          hoverAnim[k] = lerp(hoverAnim[k], target, 0.08);
+        }
+
+        // Draw planets (back to front)
+        var drawOrder = [1, 0];
+        for (var d = 0; d < drawOrder.length; d++) {
+          var idx = drawOrder[d];
+          if (idx >= PLANETS.length) continue;
+          var pl = PLANETS[idx];
+          var pos = positions[idx];
+          var ht = hoverAnim[idx];
+
+          drawSphere(pos.x, pos.y, pos.baseR, fadeIn, ht, pl.ringCount, time);
+
+          // Label
+          var labelY = pos.y + pos.baseR * (1 + ht * 0.15) * 1.4 + 20;
+          var labelAlpha = fadeIn * lerp(0.5, 1, ht);
+          var labelSize = lerp(12, 16, ht);
+
+          ctx.save();
+          ctx.font = lerp(400, 600, ht) + ' ' + labelSize + 'px "Segoe UI", system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(255,255,255,' + labelAlpha + ')';
+          ctx.letterSpacing = lerp(3, 5, ht) + 'px';
+          ctx.fillText(pl.label.toUpperCase(), pos.x, labelY);
+
+          if (ht > 0.05) {
+            ctx.font = '300 10px "Segoe UI", system-ui, sans-serif';
+            ctx.letterSpacing = '2px';
+            ctx.fillStyle = 'rgba(255,255,255,' + fadeIn * ht * 0.5 + ')';
+            ctx.fillText(pl.subtitle, pos.x, labelY + 18);
+          }
+          ctx.restore();
+        }
+
+        // Cursor
+        canvas.style.cursor = newHovered >= 0 ? 'pointer' : 'default';
+
+        // Hint text
+        if (newHovered >= 0) {
+          hintText.textContent = 'Click to travel to ' + PLANETS[newHovered].label;
+          hintText.style.color = 'rgba(255,255,255,0.5)';
+        } else {
+          hintText.textContent = 'Select a destination';
+          hintText.style.color = 'rgba(255,255,255,0.3)';
+        }
+
+        requestAnimationFrame(animate);
+      }
+
+      animate();
+    })();
+  </script>
+</body>
+</html>
+" />
     <title>Gallery Beyond - 360 Exhibition</title>
     <link rel="stylesheet" href="../css/styles.css" />
 
