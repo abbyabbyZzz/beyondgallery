@@ -4,439 +4,286 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#050508" />
-    <title>Gallery Beyond - 360 Exhibition</title>
+    <title>Gallery Beyond - 360 Tour</title>
     <link rel="stylesheet" href="../css/styles.css" />
-
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-
+    <script src="https://unpkg.com/aframe-look-at-component@1.0.0/dist/aframe-look-at-component.min.js"></script>
     <style>
-      /* 这个页面默认隐藏鼠标，按 ESC 再显示 */
-      body.exhibition-hide-cursor,
-      body.exhibition-hide-cursor * {
-        cursor: none !important;
-      }
-
-      body.exhibition-hide-cursor.show-cursor,
-      body.exhibition-hide-cursor.show-cursor * {
-        cursor: auto !important;
-      }
-
-      .back-home {
+      .back-home,
+      .tour-status,
+      .point-jump {
         position: fixed;
-        top: 20px;
-        left: 20px;
-        padding: 12px 32px;
-        background: transparent;
-        color: rgba(255, 255, 255, 0.9);
-        text-decoration: none;
-        font-family: inherit;
-        font-weight: 400;
         border-radius: 999px;
         border: 1px solid rgba(255, 255, 255, 0.5);
-        z-index: 50;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 3px;
-        font-size: 11px;
+        background: rgba(5, 5, 8, 0.35);
         backdrop-filter: blur(12px);
+        color: rgba(255, 255, 255, 0.92);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        font-size: 11px;
+        z-index: 60;
       }
-      .back-home:hover {
-        background: rgba(255, 255, 255, 0.9);
-        color: #050508;
-        border-color: rgba(255, 255, 255, 0.9);
-        transform: translateY(-1px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      .back-home {
+        top: 20px;
+        left: 20px;
+        text-decoration: none;
+        padding: 12px 32px;
       }
-
-      @media (max-width: 768px) {
-        .back-home {
-          top: 14px;
-          left: 14px;
-          padding: 8px 20px;
-          font-size: 10px;
-          letter-spacing: 2px;
-        }
-      }
-
-      .top-announcement {
-        position: fixed;
+      .tour-status {
         top: 20px;
         left: 50%;
         transform: translateX(-50%);
-        padding: 12px 32px;
+        padding: 12px 24px;
+      }
+      .point-jump {
+        left: 50%;
+        bottom: 20px;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 8px;
+        padding: 8px;
+        text-transform: none;
+      }
+      .point-jump button {
+        min-width: 40px;
+        height: 36px;
         border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.45);
         background: transparent;
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 11px;
-        letter-spacing: 3px;
-        text-transform: uppercase;
-        font-family: inherit;
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        z-index: 60;
-        backdrop-filter: blur(12px);
-        transition: all 0.3s ease;
-        white-space: nowrap;
+        color: rgba(255, 255, 255, 0.92);
+        cursor: pointer;
       }
-
+      .point-jump button.active {
+        background: rgba(255, 255, 255, 0.9);
+        color: #050508;
+      }
+      .fade-overlay {
+        position: fixed;
+        inset: 0;
+        background: #050508;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+        z-index: 55;
+      }
+      .fade-overlay.active {
+        opacity: 0.6;
+      }
+      .edge-nav {
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 72px;
+        height: 72px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        background: rgba(255, 255, 255, 0.14);
+        color: rgba(255, 255, 255, 0.94);
+        font-size: 28px;
+        line-height: 1;
+        z-index: 70;
+        cursor: pointer;
+      }
+      .edge-nav.left {
+        left: 20px;
+      }
+      .edge-nav.right {
+        right: 20px;
+      }
+      .edge-nav:hover {
+        background: rgba(255, 255, 255, 0.22);
+      }
     </style>
-
-    <script>
-      // 切换房间逻辑
-      var currentRoom = 1;
-
-      function hideDetailButton() {
-        if (window.__detailHideTimer) {
-          clearTimeout(window.__detailHideTimer);
-          window.__detailHideTimer = null;
-        }
-        var hintText = document.getElementById('detail-hint-text');
-        if (hintText) hintText.setAttribute('value', 'Double-click to view detail');
-      }
-      var ROOM_COUNT = 3;
-
-      // 射线只检测 .clickable；三间房展品同坐标叠放时，隐藏的仍可能被击中 → 仅当前房保留 clickable
-      function updateArtClickTargets() {
-        var m = document.getElementById('art-hover-monet');
-        var w = document.getElementById('art-hover-wally');
-        var h = document.getElementById('art-hover-hornet');
-        [m, w, h].forEach(function (el) {
-          if (!el) return;
-          el.classList.remove('clickable');
-        });
-        if (currentRoom === 1 && m) m.classList.add('clickable');
-        else if (currentRoom === 2 && w) w.classList.add('clickable');
-        else if (currentRoom === 3 && h) h.classList.add('clickable');
-      }
-
-      function changeRoom(direction) {
-        currentRoom = currentRoom + direction;
-        if (currentRoom > ROOM_COUNT) currentRoom = 1;
-        else if (currentRoom < 1) currentRoom = ROOM_COUNT;
-
-        hideDetailButton();
-        resetArtDoubleClick();
-
-        var sky = document.getElementById('main-sky');
-        var r1 = document.getElementById('room-1-art');
-        var r2 = document.getElementById('room-2-art');
-        var r3 = document.getElementById('room-3-art');
-
-        if (!sky || !r1 || !r2 || !r3) return;
-
-        r1.setAttribute('visible', currentRoom === 1);
-        r2.setAttribute('visible', currentRoom === 2);
-        r3.setAttribute('visible', currentRoom === 3);
-
-        if (currentRoom === 1) {
-          sky.setAttribute('src', '#bg-room1');
-        } else if (currentRoom === 2) {
-          sky.setAttribute('src', '#bg-room2');
-        } else {
-          sky.setAttribute('src', '#bg-room2');
-        }
-
-        updateArtClickTargets();
-      }
-
-      var __artDblLastId = null;
-      var __artDblLastTime = 0;
-      var __artDblTimer = null;
-      var DBL_CLICK_MS = 450;
-
-      function resetArtDoubleClick() {
-        __artDblLastId = null;
-        __artDblLastTime = 0;
-        if (__artDblTimer) {
-          clearTimeout(__artDblTimer);
-          __artDblTimer = null;
-        }
-      }
-
-      function handleArtDoubleOpen(artId) {
-        var now = Date.now();
-        if (__artDblLastId === artId && now - __artDblLastTime < DBL_CLICK_MS) {
-          resetArtDoubleClick();
-          goToArtworkDetail(artId);
-          return;
-        }
-        __artDblLastId = artId;
-        __artDblLastTime = now;
-        if (__artDblTimer) clearTimeout(__artDblTimer);
-        __artDblTimer = setTimeout(function () {
-          __artDblTimer = null;
-          __artDblLastId = null;
-          __artDblLastTime = 0;
-        }, DBL_CLICK_MS);
-      }
-
-      function goToArtworkDetail(artId) {
-        if (!artId) return;
-        try {
-          sessionStorage.setItem('galleryLastArt', artId);
-          sessionStorage.setItem('galleryDetailArt', artId);
-        } catch (e) {}
-        var u = new URL('../artwork/index.html', window.location.href);
-        u.searchParams.set('art', artId);
-        u.hash = artId;
-        navigateWithTransition(u.href);
-      }
-    </script>
   </head>
-  <body class="exhibition-hide-cursor">
-    <div class="top-announcement">Press "ESC" to show cursor.</div>
-    <a
-      href="../index.html"
-      class="back-home"
-      onclick="navigateWithTransition('../index.html'); return false;"
-      >Back to Main Menu</a
-    >
-
+  <body>
+    <a href="../index.html" class="back-home" onclick="navigateWithTransition('../index.html'); return false;">Back to Main Menu</a>
+    <div class="tour-status" id="tour-status">Point P1 / 8</div>
+    <div class="point-jump" id="point-jump"></div>
+    <button type="button" id="nav-prev-btn" class="edge-nav left" aria-label="Previous point">&lt;</button>
+    <button type="button" id="nav-next-btn" class="edge-nav right" aria-label="Next point">&gt;</button>
+    <div class="fade-overlay" id="fade-overlay"></div>
     <a-scene renderer="antialias: true">
       <a-assets>
-        <img
-          id="bg-room1"
-          src="../room1.jpg"
-          crossorigin="anonymous"
-        />
-        <img
-          id="bg-room2"
-          src="https://cdn.aframe.io/360-image-gallery-boilerplate/img/city.jpg"
-          crossorigin="anonymous"
-        />
-        <img id="monet-art" src="../art.png" />
-        <img id="art2" src="../art2.png" />
-
-        <a-asset-item
-          id="hornet-model"
-          src="../shaw-hornet-hollow-knight-silksong/source/HORNET.glb"
-        ></a-asset-item>
-
-        <audio
-          id="bgm-audio"
-          src="../bgm.mp3"
-          preload="auto"
-          loop="true"
-        ></audio>
+        <img id="p1" src="../360/location/p1.JPG" crossorigin="anonymous" />
+        <img id="p2" src="../360/location/p2.JPG" crossorigin="anonymous" />
+        <img id="p3" src="../360/location/p3.JPG" crossorigin="anonymous" />
+        <img id="p4" src="../360/location/p4.JPG" crossorigin="anonymous" />
+        <img id="p5" src="../360/location/p5.JPG" crossorigin="anonymous" />
+        <img id="p6" src="../360/location/p6.JPG" crossorigin="anonymous" />
+        <img id="p7" src="../360/location/p7.JPG" crossorigin="anonymous" />
+        <img id="p8" src="../360/location/p8.JPG" crossorigin="anonymous" />
+        <audio id="bgm-audio" src="../bgm.mp3" preload="auto" loop="true"></audio>
       </a-assets>
-
-      <a-sky id="main-sky" src="#bg-room1" rotation="0 -90 0"></a-sky>
-
-      <a-entity id="room-1-art" visible="true" position="0 0 0">
-        <a-entity position="0 2 -4">
-          <a-image
-            id="art-hover-monet"
-            class="clickable"
-            data-art-id="monet"
-            src="#monet-art"
-            position="0 0 0.05"
-            width="1.8"
-            height="1.3"
-          ></a-image>
-          <a-plane
-            position="0 0 0"
-            width="2.0"
-            height="1.5"
-            material="shader: flat; color: #FFFFFF"
-          ></a-plane>
-          <a-plane
-            position="0 0 -0.05"
-            width="2.2"
-            height="1.7"
-            material="shader: flat; color: #EEEEEE"
-          ></a-plane>
-
-        </a-entity>
-      </a-entity>
-
-      <a-entity id="room-2-art" visible="false" position="0 0 0">
-        <a-entity position="0 2 -4">
-          <a-image
-            id="art-hover-wally"
-            class="clickable"
-            data-art-id="wally"
-            src="#art2"
-            position="0 0 0.05"
-            width="1.8"
-            height="1.3"
-          ></a-image>
-          <a-plane
-            position="0 0 0"
-            width="2.0"
-            height="1.5"
-            material="shader: flat; color: #FFFFFF"
-          ></a-plane>
-          <a-plane
-            position="0 0 -0.05"
-            width="2.2"
-            height="1.7"
-            material="shader: flat; color: #EEEEEE"
-          ></a-plane>
-
-        </a-entity>
-      </a-entity>
-
-      <!-- Room 3: 3D 模型（Hornet） -->
-      <a-entity id="room-3-art" visible="false" position="0 0 0">
-        <a-light type="point" position="1.5 2.8 -2" intensity="0.55" color="#ffffff"></a-light>
-        <a-light type="ambient" color="#b8c4ff" intensity="0.35"></a-light>
-        <a-entity position="0 2 -4">
-          <a-entity
-            id="art-hover-hornet"
-            class="clickable"
-            data-art-id="hornet"
-            gltf-model="#hornet-model"
-            position="0.35 0 0"
-            rotation="0 -28 0"
-            scale="0.32 0.32 0.32"
-          ></a-entity>
-        </a-entity>
-      </a-entity>
-
-      <a-entity position="-1 0.1 -2">
-        <a-circle
-          class="clickable"
-          rotation="-90 0 0"
-          radius="0.25"
-          material="shader: flat; color: #FFFFFF; side: double"
-          onclick="changeRoom(-1)"
-        ></a-circle>
-        <a-text
-          value="Previous Room"
-          position="0 0.4 0"
-          align="center"
-          color="#FFFFFF"
-          scale="0.8 0.8 0.8"
-        ></a-text>
-      </a-entity>
-
-      <a-entity position="1 0.1 -2">
-        <a-circle
-          class="clickable"
-          rotation="-90 0 0"
-          radius="0.25"
-          material="shader: flat; color: #FFFFFF; side: double"
-          onclick="changeRoom(1)"
-        ></a-circle>
-        <a-text
-          value="Next Room"
-          position="0 0.4 0"
-          align="center"
-          color="#FFFFFF"
-          scale="0.8 0.8 0.8"
-        ></a-text>
-      </a-entity>
-
+      <a-sky id="main-sky" src="#p1" rotation="0 -90 0"></a-sky>
+      <a-entity id="hotspot-layer"></a-entity>
       <a-entity camera look-controls position="0 1.6 0">
-        <!-- 提示文案挂在相机上，保证视觉位置稳定 -->
-        <a-entity id="detail-hint" position="0 -0.3 -0.9" visible="false">
-          <a-plane
-            width="0.86"
-            height="0.09"
-            material="shader: flat; color: #08090c; transparent: true; opacity: 0.5"
-          ></a-plane>
-          <a-text
-            id="detail-hint-text"
-            value="Double-click to view detail"
-            position="0 0 0.01"
-            align="center"
-            width="1.1"
-            color="#F3F5FA"
-            letter-spacing="4"
-          ></a-text>
-        </a-entity>
-        <a-cursor
-          color="white"
-          raycaster="objects: .clickable"
-        ></a-cursor>
+        <a-cursor color="white" raycaster="objects: .clickable"></a-cursor>
       </a-entity>
     </a-scene>
-
     <script src="../js/bgm.js"></script>
     <script src="../js/transition.js"></script>
     <script>
-      // 按 ESC 切换是否显示鼠标
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' || e.key === 'Esc') {
-          document.body.classList.toggle('show-cursor');
+      var TOUR_POINTS = {
+        p1: { links: [{ to: 'p2', yaw: -27, pitch: 5 }] },
+        p2: { links: [{ to: 'p1', yaw: 145, pitch: 12 }, { to: 'p3', yaw: -60, pitch: -6, roll: 10 }] },
+        p3: { links: [{ to: 'p2', yaw: 275, pitch: -5 }, { to: 'p4', yaw: 28, pitch: -1 }] },
+        p4: {
+          links: [
+            { to: 'p3', yaw: 10, pitch: 2 },
+            { to: 'p5', yaw: 170, pitch: -2 },
+            { to: 'p1', yaw: 110, pitch: 5 }
+          ]
+        },
+        p5: { links: [{ to: 'p4', yaw: 172, pitch: -4 }, { to: 'p6', yaw: 80, pitch: 1 }] },
+        p6: { links: [{ to: 'p5', yaw: 162, pitch: 4 }, { to: 'p7', yaw: -108, pitch: 0 }] },
+        p7: { links: [{ to: 'p6', yaw: 64, pitch: 0 }, { to: 'p8', yaw: 158, pitch: 6 }] },
+        p8: {
+          links: [
+            { to: 'p7', yaw: 50, pitch: 7 },
+            { to: 'p5', yaw: 120, pitch: 6 }
+          ]
         }
-      });
+      };
+      // 底部导航/左右箭头的顺序（按 p1-8 排开）
+      var POINT_ORDER = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8'];
 
-      // 悬停画作显示提示；移开后延迟隐藏，保证观感平滑
-      function setupDetailHover() {
-        var HIDE_DELAY_MS = 180;
-        var hint = document.getElementById('detail-hint');
-        var hintText = document.getElementById('detail-hint-text');
-        var monet = document.getElementById('art-hover-monet');
-        var wally = document.getElementById('art-hover-wally');
-        var hornet = document.getElementById('art-hover-hornet');
+      var currentPoint = 'p1';
+      var switchLocked = false;
+      var hotspotLayer = document.getElementById('hotspot-layer');
+      var sky = document.getElementById('main-sky');
+      var statusEl = document.getElementById('tour-status');
+      var jumpEl = document.getElementById('point-jump');
+      var fadeEl = document.getElementById('fade-overlay');
+      var navPrevBtn = document.getElementById('nav-prev-btn');
+      var navNextBtn = document.getElementById('nav-next-btn');
 
-        function clearHideTimer() {
-          if (window.__detailHideTimer) {
-            clearTimeout(window.__detailHideTimer);
-            window.__detailHideTimer = null;
-          }
-        }
-
-        function showForArt(artId) {
-          clearHideTimer();
-          if (hintText) hintText.setAttribute('value', 'Double-click to view detail');
-          if (hint) hint.setAttribute('visible', true);
-        }
-
-        function scheduleHide() {
-          clearHideTimer();
-          window.__detailHideTimer = setTimeout(function () {
-            if (hintText) hintText.setAttribute('value', 'Double-click to view detail');
-            if (hint) hint.setAttribute('visible', false);
-            window.__detailHideTimer = null;
-          }, HIDE_DELAY_MS);
-        }
-
-        function bindArt(el, artId) {
-          if (!el) return;
-          el.addEventListener('mouseenter', function () {
-            showForArt(artId);
-          });
-          el.addEventListener('mouseleave', function () {
-            scheduleHide();
-          });
-        }
-
-        bindArt(monet, 'monet');
-        bindArt(wally, 'wally');
-        bindArt(hornet, 'hornet');
+      // 界面显示使用真实点位编号（p1~p8）
+      function displayName(pointId) {
+        return pointId;
       }
 
-      function setupArtDoubleClickBindings() {
-        var pairs = [
-          ['art-hover-monet', 'monet'],
-          ['art-hover-wally', 'wally'],
-          ['art-hover-hornet', 'hornet']
-        ];
-        pairs.forEach(function (pair) {
-          var el = document.getElementById(pair[0]);
-          if (!el) return;
-          (function (artId) {
-            el.addEventListener('click', function () {
-              handleArtDoubleOpen(artId);
-            });
-          })(pair[1]);
+      function toPosition(yawDeg, pitchDeg, radius) {
+        var yaw = (yawDeg * Math.PI) / 180;
+        var pitch = (pitchDeg * Math.PI) / 180;
+        var x = radius * Math.sin(yaw) * Math.cos(pitch);
+        var y = radius * Math.sin(pitch);
+        var z = -radius * Math.cos(yaw) * Math.cos(pitch);
+        return x + ' ' + y + ' ' + z;
+      }
+
+      function createHotspot(link) {
+        var node = document.createElement('a-entity');
+        node.setAttribute('position', toPosition(link.yaw, link.pitch, 4));
+        node.setAttribute('data-target', link.to);
+        node.setAttribute('look-at', '[camera]');
+        var roll = typeof link.roll === 'number' ? link.roll : 0;
+
+        var icon = document.createElement('a-circle');
+        icon.classList.add('clickable');
+        icon.setAttribute('radius', '0.208');
+        icon.setAttribute('material', 'shader: flat; color: #ffffff; transparent: true; opacity: 0.2; side: double');
+        icon.setAttribute('rotation', '0 0 ' + roll);
+        node.appendChild(icon);
+
+        var ring = document.createElement('a-ring');
+        ring.classList.add('clickable');
+        ring.setAttribute('radius-inner', '0.24');
+        ring.setAttribute('radius-outer', '0.272');
+        ring.setAttribute('material', 'shader: flat; color: #ffffff; transparent: true; opacity: 0.9; side: double');
+        ring.setAttribute('rotation', '0 0 ' + roll);
+        node.appendChild(ring);
+
+        var text = document.createElement('a-text');
+        text.setAttribute(
+          'value',
+          'Go ' + displayName(link.to).toUpperCase()
+        );
+        text.setAttribute('position', '0 0.42 0');
+        text.setAttribute('align', 'center');
+        text.setAttribute('color', '#ffffff');
+        text.setAttribute('width', '2.3');
+        text.setAttribute('letter-spacing', '2');
+        node.appendChild(text);
+
+        function handlePick() {
+          if (!switchLocked) goToPoint(link.to);
+        }
+        node.addEventListener('click', handlePick);
+        icon.addEventListener('click', handlePick);
+        ring.addEventListener('click', handlePick);
+        return node;
+      }
+
+      function getAdjacentPoint(step) {
+        var idx = POINT_ORDER.indexOf(currentPoint);
+        if (idx < 0) idx = 0;
+        var nextIdx = (idx + step + POINT_ORDER.length) % POINT_ORDER.length;
+        return POINT_ORDER[nextIdx];
+      }
+
+      function renderJumpButtons() {
+        jumpEl.innerHTML = '';
+        var ids = POINT_ORDER;
+        ids.forEach(function (id) {
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.textContent = displayName(id).toUpperCase();
+          if (id === currentPoint) btn.classList.add('active');
+          btn.addEventListener('click', function () {
+            if (!switchLocked) goToPoint(id);
+          });
+          jumpEl.appendChild(btn);
         });
+      }
+
+      function renderCurrentPoint() {
+        sky.setAttribute('src', '#' + currentPoint);
+        hotspotLayer.innerHTML = '';
+        var links = TOUR_POINTS[currentPoint].links;
+        links.forEach(function (link) {
+          hotspotLayer.appendChild(createHotspot(link));
+        });
+        statusEl.textContent =
+          'Point ' + displayName(currentPoint).toUpperCase() + ' / 8';
+        renderJumpButtons();
+      }
+
+      function goToPoint(pointId) {
+        if (!TOUR_POINTS[pointId] || pointId === currentPoint) return;
+        switchLocked = true;
+        fadeEl.classList.add('active');
+        setTimeout(function () {
+          currentPoint = pointId;
+          renderCurrentPoint();
+          fadeEl.classList.remove('active');
+          setTimeout(function () {
+            switchLocked = false;
+          }, 120);
+        }, 200);
+      }
+
+      function setupArrowNavigation() {
+        if (navPrevBtn) {
+          navPrevBtn.addEventListener('click', function () {
+            if (!switchLocked) goToPoint(getAdjacentPoint(-1));
+          });
+        }
+        if (navNextBtn) {
+          navNextBtn.addEventListener('click', function () {
+            if (!switchLocked) goToPoint(getAdjacentPoint(1));
+          });
+        }
       }
 
       (function () {
         var scene = document.querySelector('a-scene');
         if (!scene) return;
         function boot() {
-          updateArtClickTargets();
-          setupDetailHover();
-          setupArtDoubleClickBindings();
+          setupArrowNavigation();
+          renderCurrentPoint();
         }
-        if (scene.hasLoaded) {
-          boot();
-        } else {
-          scene.addEventListener('loaded', boot);
-        }
+        if (scene.hasLoaded) boot();
+        else scene.addEventListener('loaded', boot);
       })();
     </script>
   </body>
