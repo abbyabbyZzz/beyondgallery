@@ -31,6 +31,63 @@ a {
 
 canvas { display: block; }
 
+/* ===== Mobile rotate-to-landscape overlay (shared) ===== */
+.rotate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: #000000;
+  padding: 24px;
+}
+.rotate-overlay.is-visible {
+  display: flex;
+}
+.rotate-card {
+  width: min(520px, 92vw);
+  padding: 32px 32px 26px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: radial-gradient(circle at 50% 0, rgba(255, 255, 255, 0.02), transparent 60%);
+  backdrop-filter: blur(2px);
+  text-align: center;
+}
+.rotate-label {
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 14px;
+}
+.rotate-title {
+  font-size: clamp(1.2rem, 3.2vw, 1.6rem);
+  font-weight: 300;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: 14px;
+}
+.rotate-desc {
+  font-size: 13px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.65);
+}
+@media (max-width: 768px) {
+  .rotate-card {
+    padding: 24px 20px 20px;
+    border-radius: 20px;
+  }
+  .rotate-label,
+  .rotate-desc {
+    font-size: 12px;
+  }
+  .rotate-label {
+    letter-spacing: 2px;
+  }
+}
+
 /* ===== Global BGM toggle ===== */
 .bgm-toggle {
   position: fixed;

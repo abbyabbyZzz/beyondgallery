@@ -28,6 +28,16 @@
         padding: 80px 24px 32px;
         box-sizing: border-box;
       }
+      @media (max-width: 1024px) {
+        #detail-root {
+          padding: 72px 20px 28px;
+        }
+      }
+      @media (max-width: 768px) {
+        #detail-root {
+          padding: 64px 16px 22px;
+        }
+      }
 
       .detail-back-row {
         position: fixed;
@@ -46,6 +56,12 @@
         align-items: center;
         gap: 10px;
         flex-wrap: wrap;
+      }
+      @media (max-width: 768px) {
+        .detail-back-row {
+          padding: 14px 14px;
+          gap: 8px;
+        }
       }
 
       .back-exhibition,
@@ -78,6 +94,17 @@
         background: #000000;
         overflow: hidden;
       }
+      @media (max-width: 1024px) {
+        .detail-card {
+          border-radius: 18px;
+        }
+      }
+      @media (max-width: 768px) {
+        .detail-card {
+          width: calc(100vw - 16px);
+          border-radius: 16px;
+        }
+      }
 
       .detail-card__head {
         display: flex;
@@ -89,6 +116,12 @@
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         background: #000000;
       }
+      @media (max-width: 768px) {
+        .detail-card__head {
+          padding: 16px 16px 14px;
+          gap: 12px;
+        }
+      }
       .detail-card__head h2 {
         font-size: clamp(1.05rem, 2vw, 1.35rem);
         font-weight: 600;
@@ -97,11 +130,23 @@
         margin: 0;
         line-height: 1.25;
       }
+      @media (max-width: 768px) {
+        .detail-card__head h2 {
+          font-size: 1.05rem;
+        }
+      }
       .detail-card__head-actions {
         display: flex;
         align-items: center;
         gap: 10px;
         flex-wrap: wrap;
+      }
+      @media (max-width: 768px) {
+        .detail-card__head-actions {
+          width: 100%;
+          justify-content: space-between;
+          gap: 8px;
+        }
       }
       .badge-digital {
         padding: 8px 14px;
@@ -118,6 +163,12 @@
         position: relative;
         min-width: 200px;
       }
+      @media (max-width: 768px) {
+        .work-picker {
+          min-width: 0;
+          width: 100%;
+        }
+      }
       .work-picker__btn {
         width: 100%;
         padding: 9px 16px;
@@ -129,6 +180,12 @@
         letter-spacing: 1.5px;
         cursor: pointer;
         text-align: left;
+      }
+      @media (max-width: 768px) {
+        .work-picker__btn {
+          padding: 10px 14px;
+          font-size: 10px;
+        }
       }
       .work-picker__btn:hover {
         border-color: rgba(255, 255, 255, 0.28);
@@ -145,6 +202,14 @@
         border: 1px solid rgba(255, 255, 255, 0.14);
         background: #000000;
         z-index: 20;
+      }
+      @media (max-width: 768px) {
+        .work-picker__panel {
+          left: 0;
+          right: 0;
+          min-width: 0;
+          width: 100%;
+        }
       }
       .work-picker__panel.open {
         display: block;
@@ -202,6 +267,12 @@
           min-height: min(44vh, 520px);
         }
       }
+      @media (max-width: 768px) {
+        /* Phone landscape: give the viewer a bit more height */
+        .detail-viewer-wrap {
+          min-height: min(56vh, 520px);
+        }
+      }
       .viewer-hint {
         position: absolute;
         z-index: 5;
@@ -225,6 +296,13 @@
         letter-spacing: 1.2px;
         text-transform: none;
         font-size: 10px;
+      }
+      @media (max-width: 768px) {
+        .viewer-hint--tr {
+          max-width: 68%;
+          font-size: 10px;
+          letter-spacing: 1px;
+        }
       }
       .viewer-layer {
         position: absolute;
@@ -292,6 +370,11 @@
         background: #000000;
         min-height: 0;
       }
+      @media (max-width: 900px) {
+        .detail-info-wrap {
+          padding: 18px 18px;
+        }
+      }
       .detail-info-card {
         flex: 1;
         padding: 0;
@@ -321,6 +404,11 @@
         color: rgba(255, 255, 255, 0.78);
         max-height: min(52vh, 480px);
         overflow-y: auto;
+      }
+      @media (max-width: 900px) {
+        .detail-info-card .art-desc {
+          max-height: none;
+        }
       }
 
       .edge-nav {
@@ -353,6 +441,13 @@
     </style>
   </head>
   <body class="detail-page">
+    <div class="rotate-overlay" id="rotate-overlay" aria-hidden="true">
+      <div class="rotate-card" role="dialog" aria-modal="true" aria-label="Rotate device">
+        <div class="rotate-label">Notice</div>
+        <div class="rotate-title">Please rotate your device</div>
+        <p class="rotate-desc">This experience is best viewed in landscape orientation.</p>
+      </div>
+    </div>
     <div class="detail-back-row">
       <a
         href="../index.html"
@@ -444,6 +539,31 @@
     <script src="../js/transition.js"></script>
     <script>
       (function () {
+        (function () {
+          function shouldBlockPortrait() {
+            var isCoarse = false;
+            try {
+              isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+            } catch (e) {}
+            var small = Math.min(window.innerWidth || 0, window.innerHeight || 0) <= 820;
+            var isMobileLike = isCoarse || small;
+            var isPortrait = (window.innerHeight || 0) > (window.innerWidth || 0);
+            return isMobileLike && isPortrait;
+          }
+
+          function updateRotateOverlay() {
+            var el = document.getElementById('rotate-overlay');
+            if (!el) return;
+            var show = shouldBlockPortrait();
+            el.classList.toggle('is-visible', show);
+            el.setAttribute('aria-hidden', show ? 'false' : 'true');
+          }
+
+          window.addEventListener('resize', updateRotateOverlay);
+          window.addEventListener('orientationchange', updateRotateOverlay);
+          updateRotateOverlay();
+        })();
+
         var FOCUSED_BASE = '../360/focused-artwork/';
         var SKY_ROTATION_DEFAULT = '0 -90 -30';
         /* Work 2: default roll +20° → −10° on Z */

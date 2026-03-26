@@ -41,34 +41,28 @@
         bottom: 20px;
         transform: translateX(-50%);
         z-index: 70;
-        min-width: 220px;
+        min-width: 300px;
+        width: min(360px, calc(100vw - 40px));
         text-transform: none;
       }
       .work-dropdown-btn {
         width: 100%;
         padding: 12px 20px;
         border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        background: linear-gradient(
-          165deg,
-          rgba(0, 0, 0, 0.52) 0%,
-          rgba(0, 0, 0, 0.62) 100%
-        );
-        color: rgba(255, 255, 255, 0.96);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        background: rgba(5, 5, 8, 0.35);
+        color: rgba(255, 255, 255, 0.92);
         font-size: 11px;
         letter-spacing: 2px;
+        text-transform: uppercase;
         cursor: pointer;
-        backdrop-filter: blur(22px) saturate(1.1);
-        -webkit-backdrop-filter: blur(22px) saturate(1.1);
-        box-shadow: 0 4px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: none;
       }
       .work-dropdown-btn:hover {
-        background: linear-gradient(
-          165deg,
-          rgba(0, 0, 0, 0.42) 0%,
-          rgba(0, 0, 0, 0.55) 100%
-        );
-        border-color: rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.6);
       }
       .work-dropdown-panel {
         display: none;
@@ -79,16 +73,12 @@
         margin-bottom: 8px;
         max-height: min(52vh, 420px);
         overflow-y: auto;
-        border-radius: 16px 16px 10px 10px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        background: linear-gradient(
-          180deg,
-          rgba(0, 0, 0, 0.48) 0%,
-          rgba(0, 0, 0, 0.68) 100%
-        );
-        backdrop-filter: blur(26px) saturate(1.1);
-        -webkit-backdrop-filter: blur(26px) saturate(1.1);
-        box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        background: rgba(5, 5, 8, 0.35);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: none;
       }
       .work-dropdown-panel::-webkit-scrollbar {
         width: 7px;
@@ -111,11 +101,11 @@
         border: none;
         border-bottom: 1px solid rgba(255, 255, 255, 0.07);
         background: transparent;
-        color: rgba(255, 255, 255, 0.94);
+        color: rgba(255, 255, 255, 0.92);
         font-size: 12px;
         text-align: left;
         cursor: pointer;
-        letter-spacing: 1px;
+        letter-spacing: 1.2px;
       }
       .work-dropdown-panel button:last-child {
         border-bottom: none;
@@ -183,6 +173,13 @@
     </style>
   </head>
   <body>
+    <div class="rotate-overlay" id="rotate-overlay" aria-hidden="true">
+      <div class="rotate-card" role="dialog" aria-modal="true" aria-label="Rotate device">
+        <div class="rotate-label">Notice</div>
+        <div class="rotate-title">Please rotate your device</div>
+        <p class="rotate-desc">This experience is best viewed in landscape orientation.</p>
+      </div>
+    </div>
     <a href="../index.html" class="back-home" onclick="navigateWithTransition('../index.html'); return false;">Back to Main Menu</a>
     <div class="tour-status" id="tour-status">Point P1 / 8</div>
     <div class="work-dropdown-wrap" id="work-dropdown-wrap">
@@ -360,6 +357,32 @@
     <script src="../js/bgm.js"></script>
     <script src="../js/transition.js"></script>
     <script>
+      (function () {
+        function shouldBlockPortrait() {
+          var isCoarse = false;
+          try {
+            isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+          } catch (e) {}
+          // treat small screens as "mobile" even if matchMedia isn't supported
+          var small = Math.min(window.innerWidth || 0, window.innerHeight || 0) <= 820;
+          var isMobileLike = isCoarse || small;
+          var isPortrait = (window.innerHeight || 0) > (window.innerWidth || 0);
+          return isMobileLike && isPortrait;
+        }
+
+        function updateRotateOverlay() {
+          var el = document.getElementById('rotate-overlay');
+          if (!el) return;
+          var show = shouldBlockPortrait();
+          el.classList.toggle('is-visible', show);
+          el.setAttribute('aria-hidden', show ? 'false' : 'true');
+        }
+
+        window.addEventListener('resize', updateRotateOverlay);
+        window.addEventListener('orientationchange', updateRotateOverlay);
+        updateRotateOverlay();
+      })();
+
       var TOUR_POINTS = {
         p1: {
           links: [
