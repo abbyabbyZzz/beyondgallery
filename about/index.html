@@ -9,7 +9,6 @@
   <style>
     body { overflow-y: auto; }
 
-    /* Back to Home — top left (match global CTA style) */
     .back-link {
       position: fixed;
       top: 28px;
@@ -47,36 +46,243 @@
       stroke-width: 1.5;
     }
 
-    /* Content card */
     #about-ui {
       position: relative;
       z-index: 10;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
       min-height: 100vh;
-      padding: 80px 24px 60px;
+      padding: 88px 24px 72px;
     }
 
     .about-card {
-      width: min(820px, 92vw);
-      background: rgba(0, 0, 0, 0.45);
-      padding: 54px 56px;
-      border-radius: 24px;
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      width: min(760px, 92vw);
+      background: rgba(8, 8, 10, 0.55);
+      padding: 0;
+      border-radius: 20px;
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
+    }
+
+    /* Tabs */
+    .about-tabs {
+      display: flex;
+      gap: 0;
+      margin-top: 0;
+      padding: 0 48px;
+      padding-top: 26px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .about-tabs button {
+      flex: 1;
+      max-width: 220px;
+      padding: 16px 8px 18px;
+      border: none;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.38);
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      font-family: inherit;
+      font-weight: 500;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.25s ease;
+    }
+
+    .about-tabs button:hover {
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    .about-tabs button[aria-selected="true"] {
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    .about-tabs button[aria-selected="true"]::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.85);
+    }
+
+    .about-panels {
+      padding: 40px 48px 48px;
+    }
+
+    .about-panel[hidden] {
+      display: none;
+    }
+
+    /* Exhibition panel */
+    .exhibition-hero {
+      margin-bottom: 36px;
+    }
+
+    .exhibition-name {
+      font-size: clamp(1.5rem, 3.5vw, 2rem);
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      color: rgba(255, 255, 255, 0.96);
+      margin: 0 0 10px;
+      line-height: 1.25;
+    }
+
+    .exhibition-sub {
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.45);
+      margin: 0 0 8px;
+      font-weight: 400;
+    }
+
+    .exhibition-org {
+      font-size: 12px;
+      line-height: 1.55;
+      color: rgba(255, 255, 255, 0.42);
+      margin: 0 0 32px;
+      max-width: 42em;
+    }
+
+    .prose {
+      font-size: 15px;
+      line-height: 1.85;
+      color: rgba(255, 255, 255, 0.58);
+      font-weight: 400;
+    }
+
+    .prose p {
+      margin: 0 0 1.25em;
+    }
+
+    .prose p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* People panel */
+    .people-block {
+      margin-bottom: 36px;
+    }
+
+    .people-block:last-child {
+      margin-bottom: 0;
+    }
+
+    .people-label {
+      font-size: 10px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.42);
+      margin: 0 0 16px;
+      font-weight: 500;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .people-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px 24px;
+    }
+
+    .people-list--committee,
+    .people-list--jury {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+
+    .people-list--artists {
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 8px 32px;
+    }
+
+    .people-list li {
+      font-size: 14px;
+      line-height: 1.45;
+      color: rgba(255, 255, 255, 0.72);
+      font-weight: 400;
+      letter-spacing: 0.02em;
+    }
+
+    .cta-section {
+      margin-top: 40px;
+      padding: 0 48px 44px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .enter-btn {
+      padding: 14px 48px;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.88);
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-weight: 400;
+      font-family: inherit;
+    }
+    .enter-btn:hover {
+      background: rgba(255, 255, 255, 0.92);
+      color: #050508;
+      border-color: rgba(255, 255, 255, 0.92);
     }
 
     @media (max-width: 768px) {
       #about-ui {
-        padding: 72px 18px 40px;
+        padding: 76px 18px 48px;
         align-items: stretch;
       }
       .about-card {
         width: 100%;
-        padding: 32px 20px;
-        border-radius: 20px;
+        border-radius: 16px;
+      }
+      .about-tabs {
+        margin-top: 28px;
+        padding: 0 22px;
+        flex-direction: column;
+        align-items: stretch;
+        border-bottom: none;
+        padding-top: 18px;
+      }
+      .about-tabs button {
+        max-width: none;
+        text-align: left;
+        padding: 14px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .about-tabs button[aria-selected="true"]::after {
+        display: none;
+      }
+      .about-tabs button[aria-selected="true"] {
+        border-bottom-color: rgba(255, 255, 255, 0.25);
+      }
+      .about-panels {
+        padding: 28px 22px 36px;
+      }
+      .prose {
+        font-size: 14px;
+        line-height: 1.8;
+      }
+      .people-list--committee,
+      .people-list--jury,
+      .people-list--artists {
+        grid-template-columns: 1fr;
+      }
+      .cta-section {
+        padding: 0 22px 36px;
       }
       .back-link {
         top: 18px;
@@ -85,85 +291,10 @@
         font-size: 10px;
         letter-spacing: 2px;
       }
-      .about-body p {
-        font-size: 14px;
-        line-height: 1.7;
-      }
-    }
-
-    .top-row {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .top-row h1 {
-      font-size: clamp(2rem, 5vw, 3rem);
-      font-weight: 300;
-      letter-spacing: 6px;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.9);
-    }
-
-    .top-row .tag {
-      font-size: 11px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.4);
-      font-weight: 400;
-    }
-
-    .divider {
-      height: 1px;
-      background: rgba(255, 255, 255, 0.1);
-      margin: 24px 0 28px;
-    }
-
-    .about-body p {
-      font-size: 15px;
-      line-height: 1.8;
-      color: rgba(255, 255, 255, 0.6);
-      margin: 0 0 16px;
-      font-weight: 400;
-    }
-
-    .about-body p strong {
-      color: rgba(255, 255, 255, 0.9);
-      font-weight: 500;
-    }
-
-    /* CTA at bottom */
-    .cta-section {
-      margin-top: 40px;
-      display: flex;
-      justify-content: center;
-    }
-
-    .enter-btn {
-      padding: 16px 56px;
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.9);
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      border-radius: 50px;
-      cursor: pointer;
-      transition: all 0.35s ease;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      font-weight: 400;
-      font-family: inherit;
-    }
-    .enter-btn:hover {
-      background: rgba(255, 255, 255, 0.9);
-      color: #050508;
-      border-color: rgba(255, 255, 255, 0.9);
     }
   </style>
 </head>
 <body>
-  <!-- 预置 BGM audio，使用与根目录相同的 bgm.mp3 -->
   <audio
     id="bgm-audio"
     src="../bgm.mp3"
@@ -172,7 +303,6 @@
     style="display: none"
   ></audio>
 
-  <!-- Back to Home -->
   <a class="back-link" onclick="navigateWithTransition('../index.html'); return false;" href="../index.html">
     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
     Home
@@ -180,32 +310,92 @@
 
   <div id="about-ui" class="page-wrapper">
     <div class="about-card">
-      <div class="top-row">
-        <h1>About</h1>
-        <span class="tag">Gallery Beyond &middot; Class of 2026</span>
+      <div class="about-tabs" role="tablist" aria-label="About sections">
+        <button type="button" role="tab" id="tab-exhibition" aria-controls="panel-exhibition" aria-selected="true">About Exhibition</button>
+        <button type="button" role="tab" id="tab-people" aria-controls="panel-people" aria-selected="false">Our People</button>
       </div>
 
-      <div class="divider"></div>
+      <div class="about-panels">
+        <div
+          class="about-panel"
+          id="panel-exhibition"
+          role="tabpanel"
+          aria-labelledby="tab-exhibition"
+        >
+          <header class="exhibition-hero">
+            <h2 class="exhibition-name">The Forms We Take</h2>
+            <p class="exhibition-sub">Art and Art History Student Exhibition</p>
+            <p class="exhibition-org">
+              Organized by the Department of Visual Studies Student Society (DVSSS)
+            </p>
+          </header>
+          <div class="prose">
+            <p>
+              The Forms We Take reflects physical attributes, ideologies, and cultural paradigms we embody that are reflective of our personal and collective histories. Like taking away matter to find the ideal form within, our lived experiences bring us closer to a better understanding of who we are in relation to society. Our past, present, and future events shape who we are and we in turn shape them. One wonders: what are the systems, superstitions, and ideas that have become so ingrained in our everyday lives that we do not stop to think how they inform our understanding of self? Emerging contemporary artists question, probe, and confront the ways in which cultural narratives have been distorted, political histories have created divisions, and how personal experiences shape The Forms We Take.
+            </p>
+            <p>
+              Organized by the Department of Visual Studies Student Society, this exhibition features works by twenty-three students in all four years of the undergraduate Art and Art History program at the University of Toronto Mississauga and Sheridan College. From every year of study and varied disciplines, our artists transgress the boundaries of what is possible through their chosen media by stitching paper, assembling viewing devices, or painting without a brush to facilitate a new perspective on personal and collective histories. Each submission was carefully reviewed by a jury of student curators, resulting in a selection that highlights distinct artistic approaches grounded in theory and art historical studies.
+            </p>
+          </div>
+        </div>
 
-      <div class="about-body">
-        <p>
-          <strong>Gallery Beyond</strong> is a digital graduation exhibition celebrating the Class of 2026.
-          It transforms student projects into an immersive, explorable space &mdash; where design, storytelling,
-          and technology extend beyond the limits of a physical gallery.
-        </p>
-        <p>
-          Visitors are invited to move through a virtual exhibition hall, discover projects at their own pace,
-          and experience works in a way that feels personal, atmospheric, and interactive &mdash; like stepping
-          into a world built around each creator's vision.
-        </p>
-        <p>
-          This exhibition is both a showcase and a threshold: a moment that marks the end of one chapter,
-          and the start of infinite possibilities beyond graduation.
-        </p>
+        <div
+          class="about-panel"
+          id="panel-people"
+          role="tabpanel"
+          aria-labelledby="tab-people"
+          hidden
+        >
+          <section class="people-block">
+            <h3 class="people-label">Curation Committee</h3>
+            <ul class="people-list people-list--committee">
+              <li>Valentyna Onisko</li>
+              <li>Alex Nagy</li>
+              <li>Hafsa Murtaza</li>
+              <li>Jules Lee</li>
+            </ul>
+          </section>
+          <section class="people-block">
+            <h3 class="people-label">Student Jury</h3>
+            <ul class="people-list people-list--jury">
+              <li>Sarah Alvarez</li>
+              <li>Jules Lee</li>
+              <li>Hafsa Murtaza</li>
+              <li>Kauri Krishnar</li>
+            </ul>
+          </section>
+          <section class="people-block">
+            <h3 class="people-label">Artists</h3>
+            <ul class="people-list people-list--artists">
+              <li>Jay Barclay</li>
+              <li>Alexander Denis</li>
+              <li>Isabella Iacoe</li>
+              <li>Ella Jiang</li>
+              <li>Ava Johnson</li>
+              <li>Kauri Krishnar</li>
+              <li>Joshua Lautsch-Rees</li>
+              <li>Sarah Lise</li>
+              <li>Rose Liu</li>
+              <li>Marissa Maennling</li>
+              <li>Gurleen Manak</li>
+              <li>Hafsa Murtaza</li>
+              <li>Perla Sayah</li>
+              <li>Isabella Sciabbarrassi</li>
+              <li>Mai Shimla</li>
+              <li>Sigourney Tisdall</li>
+              <li>Charlotte Rangaratnum</li>
+              <li>Chrysha Daniella Valla</li>
+              <li>Christina Wang</li>
+              <li>Layla Waters</li>
+              <li>Erfei Ye</li>
+              <li>Tiffany Zufelt</li>
+            </ul>
+          </section>
+        </div>
       </div>
 
       <div class="cta-section">
-        <button class="enter-btn" onclick="navigateWithTransition('../exhibition/index.html')">Enter Exhibition</button>
+        <button type="button" class="enter-btn" onclick="navigateWithTransition('../exhibition/index.html')">Enter Exhibition</button>
       </div>
     </div>
   </div>
@@ -215,10 +405,33 @@
   <script src="../js/bgm.js"></script>
   <script src="../js/transition.js"></script>
   <script>
-    // Fade in page
-    setTimeout(function () {
-      document.querySelector('.page-wrapper').classList.add('visible');
-    }, 100);
+    (function () {
+      var tabEx = document.getElementById('tab-exhibition');
+      var tabPe = document.getElementById('tab-people');
+      var panelEx = document.getElementById('panel-exhibition');
+      var panelPe = document.getElementById('panel-people');
+
+      function showExhibition() {
+        tabEx.setAttribute('aria-selected', 'true');
+        tabPe.setAttribute('aria-selected', 'false');
+        panelEx.hidden = false;
+        panelPe.hidden = true;
+      }
+
+      function showPeople() {
+        tabEx.setAttribute('aria-selected', 'false');
+        tabPe.setAttribute('aria-selected', 'true');
+        panelEx.hidden = true;
+        panelPe.hidden = false;
+      }
+
+      tabEx.addEventListener('click', showExhibition);
+      tabPe.addEventListener('click', showPeople);
+
+      setTimeout(function () {
+        document.querySelector('.page-wrapper').classList.add('visible');
+      }, 100);
+    })();
   </script>
 </body>
 </html>

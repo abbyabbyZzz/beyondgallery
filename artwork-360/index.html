@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#050508" />
+    <title>Work Detail · Gallery Beyond</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+    <style>
+      body.detail-page {
+        overflow-x: hidden;
+        overflow-y: auto;
+        min-height: 100vh;
+        background: #050508;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      }
+
+      #detail-root {
+        position: relative;
+        z-index: 10;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 80px 24px 32px;
+        box-sizing: border-box;
+      }
+
+      .detail-back-row {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 120;
+        padding: 20px 24px;
+        pointer-events: none;
+      }
+      .detail-back-row > * {
+        pointer-events: auto;
+      }
+      .detail-back-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .back-exhibition,
+      .back-home {
+        display: inline-block;
+        padding: 11px 26px;
+        background: rgba(26, 26, 26, 0.85);
+        color: rgba(255, 255, 255, 0.92);
+        text-decoration: none;
+        font-size: 10px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .back-exhibition:hover,
+      .back-home:hover {
+        background: rgba(255, 255, 255, 0.92);
+        color: #0a0a0a;
+      }
+
+      /* Modal: pure black, hairline border, no “solid” fill effects */
+      .detail-card {
+        width: min(1680px, calc(100vw - 24px));
+        max-width: 100%;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: #000000;
+        overflow: hidden;
+      }
+
+      .detail-card__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        padding: 20px 24px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        background: #000000;
+      }
+      .detail-card__head h2 {
+        font-size: clamp(1.05rem, 2vw, 1.35rem);
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        color: rgba(255, 255, 255, 0.98);
+        margin: 0;
+        line-height: 1.25;
+      }
+      .detail-card__head-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .badge-digital {
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-size: 9px;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: #000000;
+      }
+
+      .work-picker {
+        position: relative;
+        min-width: 200px;
+      }
+      .work-picker__btn {
+        width: 100%;
+        padding: 9px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: #000000;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 10px;
+        letter-spacing: 1.5px;
+        cursor: pointer;
+        text-align: left;
+      }
+      .work-picker__btn:hover {
+        border-color: rgba(255, 255, 255, 0.28);
+      }
+      .work-picker__panel {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: calc(100% + 8px);
+        min-width: 220px;
+        max-height: min(46vh, 360px);
+        overflow-y: auto;
+        border-radius: 0;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: #000000;
+        z-index: 20;
+      }
+      .work-picker__panel.open {
+        display: block;
+      }
+      .work-picker__panel button {
+        display: block;
+        width: 100%;
+        padding: 10px 14px;
+        border: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        background: transparent;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 12px;
+        text-align: left;
+        cursor: pointer;
+      }
+      .work-picker__panel button:last-child {
+        border-bottom: none;
+      }
+      .work-picker__panel button:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .work-picker__panel button.is-current {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .detail-card__body {
+        display: grid;
+        grid-template-columns: 0.88fr 1.12fr;
+        align-items: stretch;
+        background: #000000;
+        min-height: min(58vh, 780px);
+      }
+      @media (max-width: 900px) {
+        .detail-card__body {
+          grid-template-columns: 1fr;
+          min-height: 0;
+        }
+        .detail-info-wrap {
+          border-left: none !important;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+      }
+
+      /* Left: 360 viewer — 2:1 baseline, min-height keeps the window taller on wide screens */
+      .detail-viewer-wrap {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 2 / 1;
+        min-height: min(48vh, 560px);
+        background: #000000;
+      }
+      @media (max-width: 900px) {
+        .detail-viewer-wrap {
+          min-height: min(44vh, 520px);
+        }
+      }
+      .viewer-hint {
+        position: absolute;
+        z-index: 5;
+        pointer-events: none;
+        font-size: 9px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.55);
+      }
+      .viewer-hint--tl {
+        top: 14px;
+        left: 14px;
+      }
+      .viewer-hint--tr {
+        top: 14px;
+        right: 14px;
+        text-align: right;
+        max-width: 55%;
+        line-height: 1.4;
+        color: rgba(255, 255, 255, 0.4);
+        letter-spacing: 1.2px;
+        text-transform: none;
+        font-size: 10px;
+      }
+      .viewer-layer {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .detail-viewer-wrap a-scene {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      #viewer-glb {
+        display: none;
+      }
+      #viewer-glb model-viewer {
+        width: 100%;
+        height: 100%;
+        background-color: #000;
+        --poster-color: transparent;
+      }
+
+      .model-switch {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 44px;
+        height: 44px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.32);
+        background: rgba(10, 10, 12, 0.45);
+        color: rgba(255, 255, 255, 0.92);
+        font-size: 18px;
+        line-height: 1;
+        z-index: 30;
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        display: none;
+      }
+      .model-switch:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
+      .model-switch:disabled {
+        opacity: 0.35;
+        cursor: default;
+      }
+      .model-switch.left {
+        left: 12px;
+      }
+      .model-switch.right {
+        right: 12px;
+      }
+
+      /* Right: text — same flat black, optional hairline only from grid */
+      .detail-info-wrap {
+        padding: 24px 28px;
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: stretch;
+        background: #000000;
+        min-height: 0;
+      }
+      .detail-info-card {
+        flex: 1;
+        padding: 0;
+        border: none;
+        background: #000000;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        justify-content: center;
+      }
+      .detail-info-card h1 {
+        font-size: clamp(1.15rem, 2vw, 1.5rem);
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        color: rgba(255, 255, 255, 0.98);
+        margin: 0;
+        line-height: 1.3;
+      }
+      .detail-info-card .art-line {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.45);
+        letter-spacing: 0.04em;
+      }
+      .detail-info-card .art-desc {
+        font-size: 14px;
+        line-height: 1.75;
+        color: rgba(255, 255, 255, 0.78);
+        max-height: min(52vh, 480px);
+        overflow-y: auto;
+      }
+
+      .edge-nav {
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 52px;
+        height: 52px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.38);
+        background: rgba(10, 10, 12, 0.55);
+        color: rgba(255, 255, 255, 0.94);
+        font-size: 20px;
+        line-height: 1;
+        z-index: 150;
+        pointer-events: auto;
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+      .edge-nav:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
+      .edge-nav.left {
+        left: 14px;
+      }
+      .edge-nav.right {
+        right: 14px;
+      }
+    </style>
+  </head>
+  <body class="detail-page">
+    <div class="detail-back-row">
+      <a
+        href="../index.html"
+        class="back-home"
+        onclick="navigateWithTransition('../index.html'); return false;"
+        >Back to Home</a
+      >
+      <a
+        href="../exhibition/index.html"
+        class="back-exhibition"
+        onclick="navigateWithTransition('../exhibition/index.html'); return false;"
+        >Back to Exhibition</a
+      >
+    </div>
+
+    <div id="detail-root">
+      <div class="detail-card">
+        <header class="detail-card__head">
+          <h2 id="modal-header-title">Artwork title</h2>
+          <div class="detail-card__head-actions">
+            <span class="badge-digital">Digital presentation</span>
+            <div class="work-picker" id="work-picker">
+              <button type="button" class="work-picker__btn" id="work-picker-btn" aria-expanded="false" aria-haspopup="listbox">
+                Select artwork ▾
+              </button>
+              <div class="work-picker__panel" id="work-picker-panel" role="listbox" aria-label="Works list"></div>
+            </div>
+          </div>
+        </header>
+
+        <div class="detail-card__body">
+          <div class="detail-viewer-wrap" id="viewer-shell">
+            <span class="viewer-hint viewer-hint--tl" id="viewer-hint-tl">HD image</span>
+            <span class="viewer-hint viewer-hint--tr" id="viewer-hint-tr">Drag to look around</span>
+            <div id="viewer-panorama" class="viewer-layer">
+              <a-scene
+                id="viewer-scene"
+                embedded
+                vr-mode-ui="enabled: false"
+                loading-screen="enabled: false"
+                renderer="antialias: true"
+              >
+                <a-assets>
+                  <img id="art360" src="" crossorigin="anonymous" />
+                </a-assets>
+                <a-sky id="art-sky" src="#art360" rotation="0 -90 -30"></a-sky>
+                <a-entity
+                  id="detail-camera"
+                  camera
+                  look-controls="pointerLockEnabled: false"
+                  position="0 1.6 0"
+                  rotation="-14 0 0"
+                ></a-entity>
+              </a-scene>
+            </div>
+            <div id="viewer-glb" class="viewer-layer" aria-hidden="true">
+              <model-viewer
+                id="model-viewer-glb"
+                src=""
+                alt="3D model"
+                camera-controls
+                touch-action="none"
+                interaction-prompt="none"
+                exposure="1"
+                shadow-intensity="0.85"
+              ></model-viewer>
+            </div>
+            <button type="button" id="model-prev-btn" class="model-switch left" aria-label="Previous model">&lt;</button>
+            <button type="button" id="model-next-btn" class="model-switch right" aria-label="Next model">&gt;</button>
+          </div>
+
+          <div class="detail-info-wrap">
+            <div class="detail-info-card">
+              <h1 id="art-title">Artwork title</h1>
+              <p class="art-line" id="art-line">Artist name · Year</p>
+              <p class="art-desc" id="art-desc">Description placeholder.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" id="artwork-prev-btn" class="edge-nav left" aria-label="Previous work">&lt;</button>
+    <button type="button" id="artwork-next-btn" class="edge-nav right" aria-label="Next work">&gt;</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script src="../js/starfield.js"></script>
+    <script src="../js/bgm.js"></script>
+    <script src="../js/transition.js"></script>
+    <script>
+      (function () {
+        var FOCUSED_BASE = '../360/focused-artwork/';
+        var SKY_ROTATION_DEFAULT = '0 -90 -30';
+        /* Work 2: default roll +20° → −10° on Z */
+        var SKY_ROTATION_WORK_2 = '0 -90 -10';
+        /* Work 11: rotate panorama +5° on Y */
+        var SKY_ROTATION_WORK_11 = '0 -85 -30';
+        /* Work 16: set panorama roll to 0 */
+        var SKY_ROTATION_WORK_16 = '0 -90 0';
+        /* Work 17: set panorama roll to 0 */
+        var SKY_ROTATION_WORK_17 = '0 -90 0';
+        var SKY_ROTATION_WORK_22 = '0 -90 0';
+        var WORK_MIN = 1;
+        var WORK_MAX = 23;
+        var STORAGE_WORK_ID = 'gallery_last_work_id';
+
+        /**
+         * Initial camera aim: slight look-up so the view isn’t aimed at the floor.
+         * A-Frame: negative X pitch ≈ look up toward wall / artwork height.
+         * Tune INITIAL_CAMERA_PITCH (e.g. −10 … −18) if needed.
+         */
+        var INITIAL_CAMERA_PITCH = -14;
+        var INITIAL_CAMERA_YAW = 0;
+
+        var DEFAULT_META = {
+          title: 'Artwork title',
+          author: 'Artist name',
+          year: '',
+          medium: '',
+          description:
+            'Description placeholder — add catalogue text in WORK_META per work id, or edit DEFAULT_META.'
+        };
+        /* Per work: { title, author, year, medium, description } — year/medium optional */
+        var WORK_META = {
+          1: {
+            title: 'Orchard',
+            author: 'Alexander Denis',
+            year: '2025',
+            medium: 'Acrylic on hardboard',
+            description:
+              'Orchard depicts a public park near my house. I wanted to show a landscape that was obviously painted. The work was created by cutting paper stencils from a full sketch and then wildly flicking paint onto the canvas. The strict borders of the stencils contrast the erratic patterns of the paint, mixing realistic form and abstracted texture.\n\nElements of fantasy are incorporated into the otherwise standard setting to turn a landscape that left little to the imagination, into one which asks questions about where it is situated in time. The hues of the scene are exaggerated, objects are omitted, light and shadow remain ambiguous, and in multiple places the underpainting shows through. Do the brown tones of the land hint at a transition from summer to autumn, or winter to spring - is there even a transition depicted at all? Is the time of day represented by the sun-like object in the sky, or is that a simple background texture?'
+          },
+          2: {
+            author: 'Layla Waters',
+            // Two separate 3D models under one work id:
+            // 2_1 = Wanderer, 2_2 = Angel Eyes
+            variants: [
+              {
+                title: 'Wanderer',
+                year: '2025',
+                medium: 'Watercolour and coloured pencil on paper',
+                description: ''
+              },
+              {
+                title: 'Angel Eyes',
+                year: '2026',
+                medium: 'Colour pencil on paper',
+                description: ''
+              }
+            ]
+          },
+          3: {
+            title: 'Allegory of Creation',
+            author: 'Marissa Maennling',
+            year: '2025',
+            medium: 'Cyanotype on cotton',
+            description:
+              '“This piece is a cyanotype print that combines the iconic Venus of Willendorf and the Cueva de las Manos in a collage-like composition. The work is meant to act as a criticism of artificial intelligence by prompting discussion around appropriation through the use of an inherently tactile and indexical medium. This work posits creativity as intrinsic to human nature, urging viewers towards embracing creation as an act of resistance.”'
+          },
+          4: {
+            title: 'A Quite Temptation',
+            author: 'Mai Shimla',
+            year: '2025',
+            medium: 'Digital photograph',
+            description:
+              '“This photograph reinterprets the Snow White narrative through a staged moment capturing her first bite of the apple, focusing on vulnerability, temptation, and visual contrast. I began with a clear visual plan, scouting locations until I found a setting where the surrounding greenery could create a saturated backdrop. To achieve the colour intensity I envisioned, I used an external portable LED light to control highlights and deepen the contrast between the green grass and the red apple, allowing these elements to stand out while keeping attention on the model as the central focus.\n\nI directed the model’s pose and positioning deliberately, considering how the body, gaze, and placement of the apple could suggest tension without revealing the full narrative. My process centers on constructing staged imagery and drawing from familiar visual references such as fairy tales. I am motivated by an aesthetic that emphasizes strong lighting, careful composition, and bold use of colour, which runs throughout my work. Through this photograph, I use these visual decisions to shape the atmosphere and invite open interpretation.”'
+          },
+          5: {
+            title: 'Inheritance',
+            author: 'Jay Barclay',
+            year: '2025',
+            medium: 'Chalk pastel on black Fabriano paper',
+            description:
+              '“Inheritance considers how our histories are predetermined and how our habits are handed down. When I was a child, my grandmother would give me a shot of whiskey to put me to sleep on long nights plagued by insomnia. This practice of drinking with the reward of sleep is one that I find myself occasionally indulging in. Like in Edward Munch’s Inheritance (1897-99), where a baby was damned to inherit syphilis from its mother, I used my family’s history of alcoholism and susception to addiction as an interpretation of history. My sense of entrapment in this cycle is conveyed through the confines of my family’s vice, an alcohol bottle. The discomfort shown in my position is intended to demonstrate my knowledge and weariness of my family’s past. Because I have historically used alcohol as an effective sleep support though, there is a simultaneously peaceful, restful expression. In this way, Inheritance examines the genetic and social factors that influence our lives.”'
+          },
+          6: {
+            title: 'Inner',
+            author: 'Ella Jiang',
+            year: '2025',
+            medium: 'Etching and aquatint on paper',
+            description:
+              '“This is a series of three and also uses the etching technique. The theme of the artworks is about the changes in inner feelings. The first one is to express the feelings of confusion and chaos. Therefore, I represent a scene of flowing water and bubbles to convey the confusion in my mind. The second one is about struggling and being trapped. I compare myself to a puppet about to shatter from the stress. I used spider rape to illustrate the tight wire, expressing my feeling as a trapped insect and the helplessness of being unable to escape. The last one is to illustrate the motion of breaking through and being reborn. This scene illustrates burning through the paper, and in the center of the scene is the black that I was trying to burn through. I applied soft ground to this piece and used plastic wrap to increase the texture.”'
+          },
+          7: {
+            title: 'Anonymous Was a Woman',
+            author: 'Isabella Iacoe',
+            year: '2025',
+            medium: 'Crochet wall hanging',
+            description:
+              '“Of the countless handmade doilies that can be found in museum collections, thrift stores, and antique shops, practically none can be attributed to a named creator.\n\nThe doily can trace its lineage to the Victorian era, where domestic craft objects – most often produced by women – were seen as reflections of taste, skill, and ability to maintain a home. Yet, such objects were historically perceived as being produced by amateurs rather than by skilled artisans. As the doily fell out of fashion in the modern home, the names of many female creators would become lost to time.\n\nInspired by second-wave feminist artists who reclaimed craft for use in art, my project brings new attention to the doily and serves as a dedication to some of the anonymous craftswomen of history. The doily uses filet crochet in adapting a quote from Virginia Woolf’s A Room of One\'s Own – “I would venture to guess that Anon, who wrote so many poems without signing them, was often a woman.”\n\nAnonymous Was a Woman aims to challenge perceptions of women’s craft and to recognize doily makers of the past for their invisible labour and artistry.”'
+          },
+          8: {
+            title: 'The Space I Take',
+            author: 'Charlotte Rangaratnum',
+            year: '2025',
+            medium: 'Acrylic marker on paper',
+            description:
+              '“After moving into a new house in September of last year, I found that I was incredibly uncomfortable in every room I was in. I had this feeling that I was taking up too much space in some places, and not enough in others. I started working on The Space I Take after I noticed myself obsessing over how I was being perceived in spaces even outside of my house. This piece was an attempt at visually depicting that unease, through oddly shaped panels, highly saturated colours, and the distorted image of myself. I wanted to find a way to present my anxieties in a way that would make sense for others, while also helping myself to move past those feelings altogether. This work was heavily influenced by elements of comic book illustration. I tried to imitate the ways in which the shape of comic panels are used to supplement the story being told, by creating a link between the size and shape of the panel, and the amount of space each figure takes up.”'
+          },
+          9: {
+            title: 'The Golden Temple',
+            author: 'Kauri Krishnar',
+            year: '2025',
+            medium: 'Embroidery on tulle and cotton',
+            description:
+              '“I created this embroidery for my grandmother, who always watches and listens to the Golden Temple prayers broadcasted from Amritsar, India. This concept of layering tulle and cotton to create a three-dimensional effect came to mind after browsing the internet and seeing textile artists using tulle as a sort of transparent surface. I believed this approach would tie in with the layering processes I have been experimenting with lately in my art practice. This project was very experimental but I am pleased with the results. I hope viewers can see this work and feel even a sliver of the wonder one might have while looking at the real monument.”'
+          },
+          10: {
+            title: 'ALIEN',
+            author: 'Tiffany Zufelt',
+            year: '2025',
+            medium: 'Textile and foam',
+            description:
+              '“This soft installation piece was completed during my Sculpture 1 class. It was my first installation piece and inspired by the feeling of home away from home, as well as a feeling of displacement and attachment. It\'s called ALIEN to reference its alien-like image, however the idea of being alienated through immigration is something I am accustomed to and deeply embedded in the idea behind the sculpture.”'
+          },
+          11: {
+            title: 'Superstitious',
+            author: 'Gurleen Manak',
+            year: '2025',
+            medium: 'Acrylic on masonite',
+            description:
+              '“This series of paintings draws from the superstitions I grew up with in my Sikh culture, beliefs that also widely echo across many cultures. The work references beliefs such as, the bad omen associated with kites, warding off the evil eye with smoked red chilies, the warning that if you are stepped over as a child, you will grow to stay short forever like a goblin, the misfortune of sweeping at night, and the belief of becoming what you squish under your shoe in the afterlife. Using only a palette knife, I aimed to capture raw, abstract memories, like pages in a childhood storybook I can return to and flip through.”'
+          },
+          12: {
+            title: 'Soft Armor, Heavy Heart',
+            author: 'Chrysha Daniella Valla',
+            year: '2024',
+            medium: 'Acrylic on textile',
+            description:
+              '“Soft Armor, Heavy Heart aims to reflect the human experience of vulnerability beneath the comfort of a blanket when we cry. This is a tribute to my late grandmother who was a dress maker. As the girl looks down in sorrow, she is unaware of the unseen love behind her swarming emotions. I used a blanket for the base, symbolizing the soft armour a blanket gives when coddled up in the comfort of a bed. I wanted to mimic the feeling of being overwhelmed by using many patterns and colours of fabric throughout the piece. This piece explores how despite the many difficulties in life, there is an unseen love akin to the safety net of a blanket.”'
+          },
+          13: {
+            title: 'Embodied Moonlight Garden',
+            author: 'Hafsa Murtaza',
+            year: '2026',
+            medium:
+              'Paper coat dress with lapel collar: block print, resist-dye, and digital print on stitched Heritage Japanese paper',
+            description:
+              '“Mughal Emperors’ floral patterned courtly attire embodied gardens, symbolizing the flourishing of India under Muslim rule. In Muslim perceptual traditions, a garden of roses is reminiscent of a floral patterned carpet. This understanding of gardens through textile informed the seventeenth-century Mehtab Bagh, or Moonlight Garden, whose octagonal pool reflected the Taj Mahal like a carpet. Now an archeological site, European myths misinterpret the pool as an unfinished ‘Black Taj’ mausoleum, conforming to linear perspective. The paper dress embodies the Mehtab Bagh through cultural ways of seeing, either as a mimetic photograph of North American birds in a lily pond at night, or as a non-mimetic traditional Pakistani Ajrak block-print or Chunri resist tie-dye floral pattern.”'
+          },
+          14: {
+            author: 'Xueqing (Christina) Wang',
+            variants: [
+              {
+                title: 'Manufactured Self',
+                year: '2025',
+                medium: 'Oil on canvas',
+                description:
+                  'Manufactured Self examines identity formation in an age shaped by digital technologies and artificial intelligence. This self-portrait presents my face suspended within a fluid, ambiguous space, surrounded by translucent hands representing algorithmic systems that shape and reconstruct the self. Neither fully human nor machine, the figure suggests an identity that is continuously produced rather than fixed.\n\nPainted in oil, transparency defines the handling of the surrounding substance and hands. Layered, semi-transparent brushwork allows forms to emerge gradually, reflecting how technological identities develop through accumulation. The hands manipulate the face with care, implying guidance and collaboration alongside control. Beneath the surface, the body remains unfinished, suspended in becoming.\n\nReferencing the economic concept of the invisible hand, the work considers how unseen systems influence behavior and self-perception, approaching technology with cautious optimism as a site of evolving agency and identity.'
+              },
+              {
+                title: 'Toward the Window',
+                year: '2025',
+                medium: 'Oil on canvas',
+                description:
+                  'Toward the Window is a self-portrait of an imagined future self, seen through the perspective of a younger girl questioning who she might become. The figure represents that projection, now overlapping with my present age. She turns toward a window, suspended between interior shadow and exterior illumination, leaning toward possibility rather than certainty.\n\nThe window functions as a threshold. Light filters through blinds in bands of complementary colour, breaking across the face and body like uneven time. These layered strokes suggest multiple versions of the self existing simultaneously—dreams, doubts, and unrealized paths.\n\nThe figure’s stillness contrasts with the movement of surrounding marks. She is both formed and forming, not yet who she will be, but already moving toward it. The work reflects on becoming as an ongoing process shaped by anticipation, memory, and imagination.'
+              }
+            ]
+          },
+          15: {
+            title: 'Serious Actor',
+            author: 'Joshua Lautsch-Rees',
+            year: '2025',
+            medium: 'Acrylic on watercolour paper',
+            description:
+              '“In Serious Actor I wanted to play with the idea of a Jester\'s mind, showing a man who craves to be known as a professional or an intellectual, but rather gets put into the role of a clown, as he plays it well. I wanted the man to confront the viewer, using a head-on perspective — the actor, hoping they can look past the colorful wig, and silly glasses to find the complex emotions underneath. I used thick acrylic paints, so the pieces of the costume harshly contrasted with the hidden man, showcasing his softer features and insecurities.”'
+          },
+          16: {
+            title: 'In the Other Room and Metamorphoses',
+            author: 'Ava Johnson',
+            year: '2026',
+            medium: 'Digital design',
+            description:
+              '“This project is a 2026/2027 season campaign proposal for the Theatre and Drama Studies program that I designed in January 2026. The campaign includes a schematic brochure featuring an introduction, two play spreads, a season schedule, land acknowledgement, and merchandise. Two corresponding posters accompany the brochure. The first poster advertising In the Other Room (or the vibrator play) written by Sarah Ruhl and directed by Samantha Wilson is a T&DS Main Stage play on the origins of the vibrator to treat hysteria. The poster\'s dripping rose and luscious lips evoke the sensuality of the play through symbolism. The second poster depicting Metamorphosis written by Mary Zimmerman and directed by David Matheson is a T&DS Studio Series play inspired by the Roman poet Ovid\'s tales of transformation. The fractured bust and butterflies represent the notion of the self and personal growth in conveying the play\'s theme of evolution. Both posters match the overall season campaign featuring bold collaged cutouts with vivid lime green and magenta tones capturing the electric energy of the theatre.”'
+          },
+          17: {
+            title: 'State: White',
+            author: 'Erfei Ye',
+            year: '2026',
+            medium:
+              'Screenprint and embossed linoleum on cotton rag paper; bandage plaster, tulle fabric',
+            description:
+              'This print series explores coral bleaching and the fragile state of marine ecosystems. Growing up in Xiamen, a coastal city in Fujian, China, I developed an early fascination with coral through marine museums and exhibitions. As I learned more about environmental change, I became increasingly aware of the global crisis of coral bleaching.\n\nThe work combines screenprint and embossed lino printing to show two visual states of coral. The colourful printed forms represent living coral, while the white embossed textures suggest bleached coral that has lost its colour and life. From a distance, the bright coral is most visible; up close, the embossed white forms gradually emerge through light and shadow. Through this contrast, the work reflects both the beauty and vulnerability of coral reefs.'
+          },
+          18: {
+            title: 'Erindale',
+            author: 'Sarah Lise',
+            year: '2025',
+            medium: 'Digital design',
+            description: ''
+          },
+          19: {
+            title: 'The Blossoms in 4AM',
+            author: 'Rose Liu',
+            year: '2025',
+            medium: 'Multimedia installation',
+            description:
+              '“The photographer took the Chinese poem To the Tune of Ru Meng Ling as the theme, combined with the form of handscroll painting, to carry out modern creation. The combination of words and photographs, which complement each other, tells the story that happens in the poem. Words are scattered throughout the scroll, serving as the background for the photos. While connecting all the photos together as a story, it also helps complete the whole work in artistic form.”'
+          },
+          20: {
+            title: 'Lineage',
+            author: 'Kauri Krishnar',
+            year: '2026',
+            medium: '3D printed PETG filament, slide mounts, transparency film',
+            description:
+              '“Last year, my family moved out of our house of twenty-one years. Through the process of moving, we found old photos and a few film slides of my great-grandparents. While I feel embarrassed to admit it, I had never seen a film slide before this and was completely fascinated at its high detail, translucency, and ability to be layered. For the first time in a while, I felt there was a new world of possibilities for art projects I could make. In the fall term, I had three studio courses — Drawing III, Design III, and Photography II. I believe it was this combination of subjects that led me to think of creating a box with holes in the sides to look through. In this box, I would place drawings of my family, printed onto film transparencies and cut into the shape of 35mm film, which could be held at different angles. The viewer can see how my family members’ features appear similarly or differently. The narrative I want the viewer to consider is one of collective history, genetic similarities, and family legacy.”'
+          },
+          21: {
+            title: 'Depth Perception',
+            author: 'Isabella Sciabbarrassi',
+            year: '2025',
+            medium: 'Wood, plexiglass, and ink',
+            description:
+              '“This artwork reflects the temporality and changing of space, allowing viewers to interact with the piece and move the panels to overlap. Each panel is etched and burnished with ink to create the different levels of space: the outlines, the detail, and the texture. When the panels are perfectly aligned, they create an image of a doorway located within the Annie Smith building at the Oakville Sheridan Campus. As we enter and exit spaces, we leave our mark and alter the environment. Through leaving footprints, crumbs, or even setting up our space for a temporary amount of time, we evidently create and change our environment. This piece is meant to reflect this creation of space, as one can walk around it, see the panels from different angles, and physically move them to make the image as they wish. As I install the artwork into the gallery, it ultimately becomes apart of creating the gallery space, changing as people enter, exit, and when the exhibition is over.”'
+          },
+          22: {
+            title: 'Colour Yield Memory’s Key (CYMK)',
+            author: 'Perla Sayah',
+            year: '2025',
+            medium: 'Transparent acetate sheets',
+            description:
+              '“Colour Yields Memory’s Key, also known as C.Y.M.K., emerged from my interest with how light and colour collaborate to construct layered photographic images. In this work, I separated a single photograph into its cyan, magenta, yellow, and black channels, printing each layer onto transparent acetate sheets. When stacked, these transparencies visually merge, revealing an image that is both fragmented and unified.\n\nAs I worked, I began reflecting on the symbolic resonance of light and layering. The faint image that forms when the layers align recalls the visual quality of the “Shroud of Turin”, a sepia-toned imprint that hovers between material evidence and spiritual mystery. Like the Shroud, this work exists in tension between absence and revelation.\n\nI am interested in how truth and identity can be partially veiled yet still radiant through transparency and light. By exposing the structural mechanics of image-making, C.Y.M.K. invites contemplation on how perception and material processes intersect.”'
+          },
+          23: {
+            title: 'Dry Brush Self Portrait',
+            author: 'Sigourney Tisdall',
+            year: '2025',
+            medium: 'Alcohol markers and charcoal on paper',
+            description:
+              '“Dry Brush Self Portrait is a self-portrait drawing that connects health rituals to the physiological body. More specifically, this piece explores the effects of dry brushing on muscle and skin circulation. Placing the figure in a shower setting, where I often dry-brush, to explore using the portrait\'s environment or background as a narrative tool. My initial plan was to layer a thin, semi-transparent sheet of treated paper over the muscle detail to show how dry brushing stimulates skin nerves and follicles, which, in turn, stimulate circulation near the skin\'s surface, with some research suggesting beneficial effects on fascia. However, the muscle details created an interesting visual effect that contrasted the vertical lines of the shower tiles, so I decided to keep them as the piece\'s focus. The final piece struck a balance between anatomical interest and personal ritual, reflecting a common theme of my practice of self-reflection and encouraging viewers to examine themselves and the physiological basis of their rituals.”'
+          }
+        };
+
+        function getSkyRotationForWork(id) {
+          if (id === 2) return SKY_ROTATION_WORK_2;
+          if (id === 11) return SKY_ROTATION_WORK_11;
+          if (id === 16) return SKY_ROTATION_WORK_16;
+          if (id === 17) return SKY_ROTATION_WORK_17;
+          if (id === 22) return SKY_ROTATION_WORK_22;
+          return SKY_ROTATION_DEFAULT;
+        }
+
+        function parseWorkIdFromLocation() {
+          var search = window.location.search || '';
+          var raw = null;
+          try {
+            var p = new URLSearchParams(search);
+            raw = p.get('id');
+            if (raw == null) raw = p.get('ID');
+          } catch (e) {}
+          if (raw == null && search) {
+            var sm = search.match(/(?:^|[?&])id=(\d+)/i);
+            if (sm) raw = sm[1];
+          }
+          var n = raw != null && raw !== '' ? parseInt(String(raw), 10) : NaN;
+          if (n >= WORK_MIN && n <= WORK_MAX) return n;
+
+          var hash = (window.location.hash || '').replace(/^#/, '');
+          if (hash) {
+            var hm = hash.match(/^id=(\d+)$/i) || hash.match(/^(\d+)$/);
+            if (hm) {
+              n = parseInt(hm[1], 10);
+              if (n >= WORK_MIN && n <= WORK_MAX) return n;
+            }
+          }
+          return NaN;
+        }
+
+        function syncWorkIdQueryParam(id) {
+          if (id < WORK_MIN || id > WORK_MAX) return;
+          var search = window.location.search || '';
+          if (/[?&]id=\d+/i.test(search)) return;
+          try {
+            var u = new URL(window.location.href);
+            u.searchParams.set('id', String(id));
+            history.replaceState(null, '', u.toString());
+          } catch (e) {
+            try {
+              var path = window.location.pathname || '';
+              var noQuery = (window.location.href || '').split('?')[0].split('#')[0];
+              if (search === '' && noQuery) {
+                history.replaceState(null, '', noQuery + '?id=' + encodeURIComponent(String(id)));
+              }
+            } catch (e2) {}
+          }
+        }
+
+        function getWorkId() {
+          var n = parseWorkIdFromLocation();
+          if (!isNaN(n)) {
+            try {
+              sessionStorage.setItem(STORAGE_WORK_ID, String(n));
+            } catch (e) {}
+            return n;
+          }
+          try {
+            var sid = sessionStorage.getItem(STORAGE_WORK_ID);
+            if (sid) {
+              n = parseInt(sid, 10);
+              if (n >= WORK_MIN && n <= WORK_MAX) return n;
+            }
+          } catch (e) {}
+          return WORK_MIN;
+        }
+
+        function getMetaFor(id) {
+          var row = WORK_META[id] || WORK_META[String(id)] || {};
+          // Variant-aware meta (used when one work id maps to multiple 3D models).
+          if (row && Array.isArray(row.variants) && row.variants.length) {
+            var glbList = getGlbVariantsForWork(id);
+            if (glbList.length > 1) {
+              var vidx = getModelVariantIndex(id, Math.min(glbList.length, row.variants.length));
+              var v = row.variants[vidx] || row.variants[0] || {};
+              return {
+                title: v.title != null ? v.title : DEFAULT_META.title,
+                author: row.author != null ? row.author : (v.author != null ? v.author : DEFAULT_META.author),
+                year: v.year != null ? v.year : DEFAULT_META.year,
+                medium: v.medium != null ? v.medium : DEFAULT_META.medium,
+                description: v.description != null ? v.description : DEFAULT_META.description
+              };
+            }
+          }
+          if (row && Array.isArray(row.works) && row.works.length) {
+            var titles = row.works
+              .map(function (w) { return (w && w.title != null) ? String(w.title).trim() : ''; })
+              .filter(Boolean);
+            var years = row.works
+              .map(function (w) { return (w && w.year != null) ? String(w.year).trim() : ''; })
+              .filter(Boolean);
+            var mediums = row.works
+              .map(function (w) { return (w && w.medium != null) ? String(w.medium).trim() : ''; })
+              .filter(Boolean);
+            var descParts = row.works.map(function (w) {
+              if (!w) return '';
+              var t = w.title != null ? String(w.title).trim() : '';
+              var y = w.year != null ? String(w.year).trim() : '';
+              var m = w.medium != null ? String(w.medium).trim() : '';
+              var d = w.description != null ? String(w.description) : '';
+              var head = t;
+              if (t && y) head = t + ' (' + y + ')';
+              if (!t && y) head = y;
+              var meta = [m].filter(Boolean).join('');
+              var firstLine = [head, meta].filter(Boolean).join(' — ');
+              return [firstLine, d].filter(Boolean).join('\n');
+            }).filter(Boolean);
+            return {
+              title: titles.length ? titles.join(' / ') : DEFAULT_META.title,
+              author: row.author != null ? row.author : DEFAULT_META.author,
+              year: years.length ? years.join(', ') : DEFAULT_META.year,
+              medium: mediums.length ? mediums.join(' / ') : DEFAULT_META.medium,
+              description: descParts.join('\n\n')
+            };
+          }
+          return {
+            title: row.title != null ? row.title : DEFAULT_META.title,
+            author: row.author != null ? row.author : DEFAULT_META.author,
+            year: row.year != null ? row.year : DEFAULT_META.year,
+            medium: row.medium != null ? row.medium : DEFAULT_META.medium,
+            description: row.description != null ? row.description : DEFAULT_META.description
+          };
+        }
+
+        function formatArtLine(m) {
+          var parts = [m.author];
+          if (m.year) parts.push(m.year);
+          if (m.medium) parts.push(m.medium);
+          return parts.join(' · ');
+        }
+
+        function applyMeta(id) {
+          var m = getMetaFor(id);
+          var ht = document.getElementById('modal-header-title');
+          var t = document.getElementById('art-title');
+          var line = document.getElementById('art-line');
+          var d = document.getElementById('art-desc');
+          function stripOuterSmartQuotes(s) {
+            if (s == null) return s;
+            s = String(s);
+            // Remove leading/trailing Chinese-style smart quotes if they wrap the whole caption.
+            if (s.length >= 2 && s.charAt(0) === '“' && s.charAt(s.length - 1) === '”') {
+              return s.slice(1, -1);
+            }
+            return s;
+          }
+          if (ht) ht.textContent = m.title;
+          if (t) t.textContent = m.title;
+          if (line) line.textContent = formatArtLine(m);
+          if (d) d.textContent = stripOuterSmartQuotes(m.description);
+          document.title = m.title + ' · Gallery Beyond';
+        }
+
+        function resetViewerCamera() {
+          var cam = document.getElementById('detail-camera');
+          if (cam) {
+            cam.setAttribute('rotation', {
+              x: INITIAL_CAMERA_PITCH,
+              y: INITIAL_CAMERA_YAW,
+              z: 0
+            });
+          }
+        }
+
+        function applyViewerHints(is3d) {
+          var hintTr = document.getElementById('viewer-hint-tr');
+          var hintTl = document.getElementById('viewer-hint-tl');
+          if (hintTr) {
+            hintTr.textContent = is3d ? 'Drag to rotate · Scroll to zoom' : 'Drag to look around';
+          }
+          if (hintTl) {
+            hintTl.textContent = is3d ? '3D model' : 'HD image';
+          }
+        }
+
+        // GLB_MODELS supports:
+        // - string: single model, one URL
+        // - ['a.glb','b.glb']: ONE logical model, multiple fallback URLs (no viewer arrows)
+        // - [['a1','a2'], ['b1','b2']]: MULTIPLE models; inner arrays are fallback URLs per variant (viewer arrows)
+        // For local file naming differences (e.g., 02_1_model.glb vs 2_1_model.glb), use the flat two-string form.
+        var GLB_MODELS = {
+          1: ['../artwork/1_model.glb', '../artwork/01_model.glb'],
+          2: [
+            ['../artwork/02_1_model.glb', '../artwork/2_1_model.glb'],
+            ['../artwork/02_2_model.glb', '../artwork/2_2_model.glb']
+          ],
+          3: ['../artwork/03_model.glb', '../artwork/3_model.glb'],
+          5: ['../artwork/05_model.glb', '../artwork/5_model.glb'],
+          6: [
+            ['../artwork/06_1_model.glb', '../artwork/6_1_model.glb'],
+            ['../artwork/06_2_model.glb', '../artwork/6_2_model.glb'],
+            ['../artwork/06_3_model.glb', '../artwork/6_3_model.glb']
+          ],
+          8: ['../artwork/08_model.glb', '../artwork/8_model.glb'],
+          11: [
+            ['../artwork/11_1_model.glb', '../artwork/11-1_model.glb'],
+            ['../artwork/11_2_model.glb', '../artwork/11-2_model.glb'],
+            ['../artwork/11_3_model.glb', '../artwork/11-3_model.glb'],
+            ['../artwork/11_4_model.glb', '../artwork/11-4_model.glb'],
+            ['../artwork/11_5_model.glb', '../artwork/11-5_model.glb']
+          ],
+          12: ['../artwork/12_model.glb', '../artwork/12-model.glb'],
+          13: ['../artwork/13_model.glb', '../artwork/13-model.glb'],
+          14: [
+            ['../artwork/14_1_model.glb', '../artwork/14-1_model.glb'],
+            ['../artwork/14_2_model.glb', '../artwork/14-2_model.glb']
+          ],
+          15: ['../artwork/15_model.glb', '../artwork/15-model.glb'],
+          18: [
+            ['../artwork/18_1_model.glb', '../artwork/18-1_model.glb'],
+            ['../artwork/18_2_model.glb', '../artwork/18-2_model.glb']
+          ],
+          23: ['../artwork/23_model.glb', '../artwork/23-model.glb']
+        };
+
+        function getGlbSrcForWork(id) {
+          return GLB_MODELS[id] || null;
+        }
+
+        function normalizeVariantEntryToCandidates(entry) {
+          if (!entry) return [];
+          if (Array.isArray(entry)) return entry.filter(Boolean);
+          return [entry];
+        }
+
+        function getGlbVariantsForWork(id) {
+          var v = getGlbSrcForWork(id);
+          if (!v) return [];
+          if (!Array.isArray(v)) return [[v]];
+          if (!v.length) return [];
+          // Multi-model: first slot is an array of candidate URLs for variant 1
+          if (Array.isArray(v[0])) {
+            return v.filter(function (x) { return x && (Array.isArray(x) ? x.length : true); });
+          }
+          // Flat list of strings = one model, multiple fallback paths
+          return [v.filter(Boolean)];
+        }
+
+        function getGlbCandidatesForVariant(id, variantIdx) {
+          var variants = getGlbVariantsForWork(id);
+          if (!variants.length) return [];
+          var entry = variants[Math.max(0, Math.min(variantIdx, variants.length - 1))];
+          return normalizeVariantEntryToCandidates(entry);
+        }
+
+        function getModelVariantKey(id) {
+          return 'gallery_glb_variant_' + String(id);
+        }
+
+        function getModelVariantIndex(id, max) {
+          if (!max || max <= 1) return 0;
+          try {
+            var raw = sessionStorage.getItem(getModelVariantKey(id));
+            var n = parseInt(raw, 10);
+            if (!isNaN(n) && n >= 0 && n < max) return n;
+          } catch (e) {}
+          return 0;
+        }
+
+        function setModelVariantIndex(id, idx) {
+          try {
+            sessionStorage.setItem(getModelVariantKey(id), String(idx));
+          } catch (e) {}
+        }
+
+        function getModelCandidateKey(id, variantIdx) {
+          return 'gallery_glb_candidate_' + String(id) + '_' + String(variantIdx);
+        }
+
+        function getModelCandidateIndex(id, variantIdx, max) {
+          if (!max || max <= 1) return 0;
+          try {
+            var raw = sessionStorage.getItem(getModelCandidateKey(id, variantIdx));
+            var n = parseInt(raw, 10);
+            if (!isNaN(n) && n >= 0 && n < max) return n;
+          } catch (e) {}
+          return 0;
+        }
+
+        function setModelCandidateIndex(id, variantIdx, idx) {
+          try {
+            sessionStorage.setItem(getModelCandidateKey(id, variantIdx), String(idx));
+          } catch (e) {}
+        }
+
+        function updateModelSwitchUI(enabled) {
+          var prev = document.getElementById('model-prev-btn');
+          var next = document.getElementById('model-next-btn');
+          if (prev) prev.style.display = enabled ? 'block' : 'none';
+          if (next) next.style.display = enabled ? 'block' : 'none';
+        }
+
+        function applyWork(id) {
+          try {
+            sessionStorage.setItem(STORAGE_WORK_ID, String(id));
+          } catch (e) {}
+          var file = String(id).padStart(2, '0') + '.JPG';
+          var src = FOCUSED_BASE + file;
+          var img = document.getElementById('art360');
+          var sky = document.getElementById('art-sky');
+          var pickerBtn = document.getElementById('work-picker-btn');
+          var pano = document.getElementById('viewer-panorama');
+          var glbWrap = document.getElementById('viewer-glb');
+          var mv = document.getElementById('model-viewer-glb');
+          var scene = document.getElementById('viewer-scene');
+          var glbVariants = getGlbVariantsForWork(id);
+          var isGlb = glbVariants.length > 0;
+          var variantIdx = getModelVariantIndex(id, glbVariants.length);
+          var candidates = isGlb ? getGlbCandidatesForVariant(id, variantIdx) : [];
+          var candidateIdx = getModelCandidateIndex(id, variantIdx, candidates.length);
+          var glbSrc = candidates.length ? candidates[candidateIdx] : null;
+
+          if (pickerBtn) pickerBtn.textContent = getTitleFor(id) + ' ▾';
+          syncPickerCurrent(id);
+          applyMeta(id);
+
+          try {
+            if (isGlb) {
+              updateModelSwitchUI(glbVariants.length > 1);
+              if (pano) pano.style.display = 'none';
+              if (glbWrap) {
+                glbWrap.style.display = 'block';
+                glbWrap.setAttribute('aria-hidden', 'false');
+              }
+              if (mv) {
+                mv.__glbWorkId = id;
+                mv.__glbVariantIdx = variantIdx;
+                mv.__glbCandidates = candidates.slice();
+                mv.__glbCandidateIdx = candidateIdx;
+                if (!mv.__glbErrorHandlerAttached) {
+                  mv.__glbErrorHandlerAttached = true;
+                  mv.addEventListener('error', function () {
+                    var wid = mv.__glbWorkId;
+                    var vidx = mv.__glbVariantIdx;
+                    var list = mv.__glbCandidates || [];
+                    if (!list.length) return;
+                    var nextIdx = (mv.__glbCandidateIdx + 1) % list.length;
+                    if (nextIdx === mv.__glbCandidateIdx) return;
+                    mv.__glbCandidateIdx = nextIdx;
+                    setModelCandidateIndex(wid, vidx, nextIdx);
+                    try {
+                      mv.setAttribute('src', list[nextIdx]);
+                    } catch (e) {}
+                  });
+                }
+                if (glbSrc && mv.getAttribute('src') !== glbSrc) {
+                  mv.setAttribute('src', glbSrc);
+                }
+                mv.setAttribute('alt', 'Work ' + id + ' — 3D model');
+              }
+              applyViewerHints(true);
+              requestAnimationFrame(function () {
+                window.dispatchEvent(new Event('resize'));
+                if (mv && typeof mv.updateSize === 'function') {
+                  mv.updateSize();
+                }
+              });
+            } else {
+              updateModelSwitchUI(false);
+              if (pano) pano.style.display = 'block';
+              if (glbWrap) {
+                glbWrap.style.display = 'none';
+                glbWrap.setAttribute('aria-hidden', 'true');
+              }
+              if (img) img.setAttribute('src', src);
+              if (sky) {
+                sky.setAttribute('src', src);
+                sky.setAttribute('rotation', getSkyRotationForWork(id));
+              }
+              resetViewerCamera();
+              applyViewerHints(false);
+              if (scene && typeof scene.resize === 'function') {
+                scene.resize();
+              }
+            }
+          } catch (e) {
+            applyViewerHints(false);
+          }
+        }
+
+        function getTitleFor(id) {
+          var row = WORK_META[id] || WORK_META[String(id)] || null;
+          if (row && Array.isArray(row.variants) && row.variants.length) {
+            var titles = row.variants
+              .map(function (v) { return v && v.title != null ? String(v.title).trim() : ''; })
+              .filter(Boolean);
+            if (titles.length) return titles.join(' / ');
+          }
+          if (row && Array.isArray(row.works) && row.works.length) {
+            var titles2 = row.works
+              .map(function (w) { return w && w.title != null ? String(w.title).trim() : ''; })
+              .filter(Boolean);
+            if (titles2.length) return titles2.join(' / ');
+          }
+          var m = getMetaFor(id);
+          var title = m && m.title != null ? String(m.title).trim() : '';
+          return title || 'Artwork';
+        }
+
+        function setPickerOpen(open) {
+          var panel = document.getElementById('work-picker-panel');
+          var btn = document.getElementById('work-picker-btn');
+          if (!panel || !btn) return;
+          panel.classList.toggle('open', open);
+          btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        function syncPickerCurrent(currentId) {
+          var panel = document.getElementById('work-picker-panel');
+          if (!panel) return;
+          panel.querySelectorAll('button[data-work-id]').forEach(function (b) {
+            var wid = parseInt(b.getAttribute('data-work-id'), 10);
+            b.classList.toggle('is-current', wid === currentId);
+          });
+        }
+
+        function initWorkPicker() {
+          var wrap = document.getElementById('work-picker');
+          var panel = document.getElementById('work-picker-panel');
+          var btn = document.getElementById('work-picker-btn');
+          if (!wrap || !panel || !btn) return;
+          panel.innerHTML = '';
+          for (var n = WORK_MIN; n <= WORK_MAX; n++) {
+            (function (wid) {
+              var opt = document.createElement('button');
+              opt.type = 'button';
+              opt.setAttribute('role', 'option');
+              opt.setAttribute('data-work-id', String(wid));
+              opt.textContent = getTitleFor(wid);
+              opt.addEventListener('click', function () {
+                setPickerOpen(false);
+                if (wid === getWorkId()) return;
+                navigateWithTransition('index.html?id=' + wid);
+              });
+              panel.appendChild(opt);
+            })(n);
+          }
+          btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            setPickerOpen(!panel.classList.contains('open'));
+          });
+          document.addEventListener('click', function () {
+            setPickerOpen(false);
+          });
+          wrap.addEventListener('click', function (e) {
+            e.stopPropagation();
+          });
+        }
+
+        function goWork(delta) {
+          var id = getWorkId();
+          var next = id + delta;
+          if (next < WORK_MIN) next = WORK_MAX;
+          if (next > WORK_MAX) next = WORK_MIN;
+          navigateWithTransition('index.html?id=' + next);
+        }
+
+        var id = getWorkId();
+        syncWorkIdQueryParam(id);
+        initWorkPicker();
+        applyWork(id);
+
+        var prevBtn = document.getElementById('artwork-prev-btn');
+        var nextBtn = document.getElementById('artwork-next-btn');
+        if (prevBtn) prevBtn.addEventListener('click', function () { goWork(-1); });
+        if (nextBtn) nextBtn.addEventListener('click', function () { goWork(1); });
+
+        function initModelSwitchControls() {
+          var prev = document.getElementById('model-prev-btn');
+          var next = document.getElementById('model-next-btn');
+          if (!prev || !next) return;
+          function step(delta) {
+            var id = getWorkId();
+            var list = getGlbVariantsForWork(id);
+            if (list.length <= 1) return;
+            var idx = getModelVariantIndex(id, list.length);
+            var nextIdx = (idx + delta + list.length) % list.length;
+            setModelVariantIndex(id, nextIdx);
+            // Reset candidate choice when switching variants
+            setModelCandidateIndex(id, nextIdx, 0);
+            applyWork(id);
+          }
+          prev.addEventListener('click', function (e) {
+            e.stopPropagation();
+            step(-1);
+          });
+          next.addEventListener('click', function (e) {
+            e.stopPropagation();
+            step(1);
+          });
+        }
+        initModelSwitchControls();
+      })();
+    </script>
+  </body>
+</html>

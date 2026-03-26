@@ -10,8 +10,7 @@
     <script src="https://unpkg.com/aframe-look-at-component@1.0.0/dist/aframe-look-at-component.min.js"></script>
     <style>
       .back-home,
-      .tour-status,
-      .point-jump {
+      .tour-status {
         position: fixed;
         border-radius: 999px;
         border: 1px solid rgba(255, 255, 255, 0.5);
@@ -23,7 +22,7 @@
         font-size: 11px;
         z-index: 60;
       }
-      .back-home {
+        .back-home {
         top: 20px;
         left: 20px;
         text-decoration: none;
@@ -35,27 +34,94 @@
         transform: translateX(-50%);
         padding: 12px 24px;
       }
-      .point-jump {
+      /* Work dropdown: opens upward, frosted glass */
+      .work-dropdown-wrap {
+        position: fixed;
         left: 50%;
         bottom: 20px;
         transform: translateX(-50%);
-        display: flex;
-        gap: 8px;
-        padding: 8px;
+        z-index: 70;
+        min-width: 220px;
         text-transform: none;
       }
-      .point-jump button {
-        min-width: 40px;
-        height: 36px;
+      .work-dropdown-btn {
+        width: 100%;
+        padding: 12px 20px;
         border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.45);
-        background: transparent;
-        color: rgba(255, 255, 255, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: linear-gradient(
+          165deg,
+          rgba(0, 0, 0, 0.52) 0%,
+          rgba(0, 0, 0, 0.62) 100%
+        );
+        color: rgba(255, 255, 255, 0.96);
+        font-size: 11px;
+        letter-spacing: 2px;
         cursor: pointer;
+        backdrop-filter: blur(22px) saturate(1.1);
+        -webkit-backdrop-filter: blur(22px) saturate(1.1);
+        box-shadow: 0 4px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
       }
-      .point-jump button.active {
-        background: rgba(255, 255, 255, 0.9);
-        color: #050508;
+      .work-dropdown-btn:hover {
+        background: linear-gradient(
+          165deg,
+          rgba(0, 0, 0, 0.42) 0%,
+          rgba(0, 0, 0, 0.55) 100%
+        );
+        border-color: rgba(255, 255, 255, 0.22);
+      }
+      .work-dropdown-panel {
+        display: none;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 100%;
+        margin-bottom: 8px;
+        max-height: min(52vh, 420px);
+        overflow-y: auto;
+        border-radius: 16px 16px 10px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.48) 0%,
+          rgba(0, 0, 0, 0.68) 100%
+        );
+        backdrop-filter: blur(26px) saturate(1.1);
+        -webkit-backdrop-filter: blur(26px) saturate(1.1);
+        box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      }
+      .work-dropdown-panel::-webkit-scrollbar {
+        width: 7px;
+      }
+      .work-dropdown-panel::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.14);
+        border-radius: 4px;
+      }
+      .work-dropdown-panel::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 4px;
+      }
+      .work-dropdown-panel.open {
+        display: block;
+      }
+      .work-dropdown-panel button {
+        display: block;
+        width: 100%;
+        padding: 11px 16px;
+        border: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        background: transparent;
+        color: rgba(255, 255, 255, 0.94);
+        font-size: 12px;
+        text-align: left;
+        cursor: pointer;
+        letter-spacing: 1px;
+      }
+      .work-dropdown-panel button:last-child {
+        border-bottom: none;
+      }
+      .work-dropdown-panel button:hover {
+        background: rgba(255, 255, 255, 0.06);
       }
       .fade-overlay {
         position: fixed;
@@ -93,15 +159,186 @@
       .edge-nav:hover {
         background: rgba(255, 255, 255, 0.22);
       }
+
+      /* Works list: hover + double-click to open */
+      .work-dropdown-panel button.work-item {
+        position: relative;
+        transition:
+          background 0.2s ease,
+          border-color 0.2s ease,
+          transform 0.18s ease,
+          box-shadow 0.2s ease;
+        border-left: 2px solid transparent;
+      }
+      .work-dropdown-panel button.work-item:hover {
+        background: rgba(255, 255, 255, 0.09);
+        border-left-color: rgba(255, 255, 255, 0.45);
+        transform: translateX(3px);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+      }
+      .work-dropdown-panel button.work-item:focus-visible {
+        outline: 1px solid rgba(255, 255, 255, 0.35);
+        outline-offset: -2px;
+      }
     </style>
   </head>
   <body>
     <a href="../index.html" class="back-home" onclick="navigateWithTransition('../index.html'); return false;">Back to Main Menu</a>
     <div class="tour-status" id="tour-status">Point P1 / 8</div>
-    <div class="point-jump" id="point-jump"></div>
+    <div class="work-dropdown-wrap" id="work-dropdown-wrap">
+      <button type="button" class="work-dropdown-btn" id="work-dropdown-btn" aria-expanded="false" aria-haspopup="listbox">
+        Works ▾
+      </button>
+      <div class="work-dropdown-panel" id="work-dropdown-panel" role="listbox" aria-label="Works 1 to 23"></div>
+    </div>
     <button type="button" id="nav-prev-btn" class="edge-nav left" aria-label="Previous point">&lt;</button>
     <button type="button" id="nav-next-btn" class="edge-nav right" aria-label="Next point">&gt;</button>
     <div class="fade-overlay" id="fade-overlay"></div>
+    <aside class="exhibition-map" id="exhibition-map" aria-label="Exhibition floor plan">
+      <p class="exhibition-map__label">Floor plan</p>
+      <!--
+        Mini-map coordinate system: viewBox 0 0 100 100 (unitless SVG coords).
+        Tune layout by editing line endpoints below, WORK_MAP_POS / ARTWORK_SHAPES / POINT_TO_MAP in script.
+      -->
+      <svg id="exhibition-map-svg" viewBox="0 0 100 100" role="img" aria-label="Gallery floor plan">
+        <defs>
+          <filter id="map-floor-shadow" x="-5%" y="-5%" width="110%" height="110%">
+            <feDropShadow dx="0" dy="0.6" stdDeviation="1.2" flood-color="#000" flood-opacity="0.12" />
+          </filter>
+        </defs>
+        <!-- Layer: floor -->
+        <rect
+          class="map-floor"
+          x="6"
+          y="6"
+          width="88"
+          height="88"
+          filter="url(#map-floor-shadow)"
+        />
+        <!-- Layer: walls (black) — outer rectangle + 3 internal partitions with gaps -->
+        <g id="map-layer-walls" class="map-layer-walls" aria-hidden="true">
+          <line class="map-wall-black" x1="6" y1="6" x2="94" y2="6" />
+          <line class="map-wall-black" x1="94" y1="6" x2="94" y2="94" />
+          <line class="map-wall-black" x1="94" y1="94" x2="6" y2="94" />
+          <line class="map-wall-black" x1="6" y1="94" x2="6" y2="6" />
+          <!-- Bottom third: horizontal partition, opening in the middle -->
+          <line class="map-wall-black" x1="6" y1="76" x2="36" y2="76" />
+          <line class="map-wall-black" x1="64" y1="76" x2="94" y2="76" />
+          <!-- Middle right: segment from right wall inward -->
+          <line class="map-wall-black" x1="94" y1="52" x2="70" y2="52" />
+          <!-- Upper right: segment from right wall inward -->
+          <line class="map-wall-black" x1="94" y1="26" x2="70" y2="26" />
+        </g>
+        <!-- Layer: gray artwork blocks (filled by initArtworkShapes()) -->
+        <g id="map-layer-artwork-shapes"></g>
+        <!-- Layer: pink ID badges 1–23 (filled by initExhibitionMap()) -->
+        <g id="map-artworks-layer"></g>
+        <!-- Layer: blue viewpoints 1–8 — clickable; maps to panorama p1–p8 -->
+        <g id="map-layer-viewpoints" pointer-events="all">
+          <g
+            id="point-1"
+            class="map-nav-hit"
+            data-view-id="1"
+            role="button"
+            tabindex="0"
+            focusable="true"
+            aria-label="Viewpoint 1"
+          >
+            <circle class="map-nav-point" cx="18" cy="88" r="3.2" />
+            <text class="map-nav-num" x="18" y="88">1</text>
+          </g>
+          <g
+            id="point-2"
+            class="map-nav-hit"
+            data-view-id="2"
+            role="button"
+            tabindex="0"
+            focusable="true"
+            aria-label="Viewpoint 2"
+          >
+            <circle class="map-nav-point" cx="88" cy="88" r="3.2" />
+            <text class="map-nav-num" x="88" y="88">2</text>
+          </g>
+          <g
+            id="point-3"
+            class="map-nav-hit"
+            data-view-id="3"
+            role="button"
+            tabindex="0"
+            focusable="true"
+            aria-label="Viewpoint 3"
+          >
+            <circle class="map-nav-point" cx="78" cy="60" r="3.2" />
+            <text class="map-nav-num" x="78" y="60">3</text>
+          </g>
+          <g
+            id="point-4"
+            class="map-nav-hit"
+            data-view-id="4"
+            role="button"
+            tabindex="0"
+            focusable="true"
+            aria-label="Viewpoint 4"
+          >
+            <circle class="map-nav-point" cx="50" cy="68" r="3.2" />
+            <text class="map-nav-num" x="50" y="68">4</text>
+          </g>
+          <g
+            id="point-5"
+            class="map-nav-hit"
+            data-view-id="5"
+            role="button"
+            tabindex="0"
+            focusable="true"
+            aria-label="Viewpoint 5"
+          >
+            <circle class="map-nav-point" cx="28" cy="48" r="3.2" />
+            <text class="map-nav-num" x="28" y="48">5</text>
+          </g>
+          <g
+            id="point-6"
+            class="map-nav-hit"
+            data-view-id="6"
+            role="button"
+            tabindex="0"
+            focusable="true"
+            aria-label="Viewpoint 6"
+          >
+            <circle class="map-nav-point" cx="82" cy="40" r="3.2" />
+            <text class="map-nav-num" x="82" y="40">6</text>
+          </g>
+          <g
+            id="point-7"
+            class="map-nav-hit"
+            data-view-id="7"
+            role="button"
+            tabindex="0"
+            focusable="true"
+            aria-label="Viewpoint 7"
+          >
+            <circle class="map-nav-point" cx="86" cy="14" r="3.2" />
+            <text class="map-nav-num" x="86" y="14">7</text>
+          </g>
+          <g
+            id="point-8"
+            class="map-nav-hit"
+            data-view-id="8"
+            role="button"
+            tabindex="0"
+            focusable="true"
+            aria-label="Viewpoint 8"
+          >
+            <circle class="map-nav-point" cx="14" cy="14" r="3.2" />
+            <text class="map-nav-num" x="14" y="14">8</text>
+          </g>
+        </g>
+        <!-- Layer: current user (synced with current panorama point) -->
+        <g id="map-user-layer" transform="translate(18, 88)">
+          <circle class="map-you-pulse" cx="0" cy="0" r="3.2" />
+          <circle class="map-you" id="map-user-dot" cx="0" cy="0" r="2" />
+        </g>
+      </svg>
+    </aside>
     <a-scene renderer="antialias: true">
       <a-assets>
         <img id="p1" src="../360/location/p1.JPG" crossorigin="anonymous" />
@@ -124,19 +361,39 @@
     <script src="../js/transition.js"></script>
     <script>
       var TOUR_POINTS = {
-        p1: { links: [{ to: 'p2', yaw: -27, pitch: 5 }] },
-        p2: { links: [{ to: 'p1', yaw: 145, pitch: 12 }, { to: 'p3', yaw: -60, pitch: -6, roll: 10 }] },
-        p3: { links: [{ to: 'p2', yaw: 275, pitch: -5 }, { to: 'p4', yaw: 28, pitch: -1 }] },
+        p1: {
+          links: [
+            { to: 'p2', yaw: -27, pitch: 5 },
+            // p1→p2 base, then 40° left (yaw −40)
+            { to: 'p4', yaw: -47, pitch: 5 }
+          ]
+        },
+        p2: {
+          links: [
+            { to: 'p1', yaw: 142, pitch: 7 },
+            { to: 'p3', yaw: -90, pitch: -46, roll: 10 },
+            // Between p1 and p3: ~45° along great circle from p1 toward p3
+            { to: 'p4', yaw: 172, pitch: -27 }
+          ]
+        },
+        p3: { links: [{ to: 'p2', yaw: 305, pitch: -5 }, { to: 'p4', yaw: 28, pitch: -1 }] },
         p4: {
           links: [
             { to: 'p3', yaw: 10, pitch: 2 },
-            { to: 'p5', yaw: 170, pitch: -2 },
+            { to: 'p5', yaw: 190, pitch: -17 },
             { to: 'p1', yaw: 110, pitch: 5 }
           ]
         },
         p5: { links: [{ to: 'p4', yaw: 172, pitch: -4 }, { to: 'p6', yaw: 80, pitch: 1 }] },
-        p6: { links: [{ to: 'p5', yaw: 162, pitch: 4 }, { to: 'p7', yaw: -108, pitch: 0 }] },
-        p7: { links: [{ to: 'p6', yaw: 64, pitch: 0 }, { to: 'p8', yaw: 158, pitch: 6 }] },
+        p6: {
+          links: [
+            { to: 'p5', yaw: 162, pitch: -9 },
+            // Bisector of p6→p5 and p6→p7 (normalized sum)
+            { to: 'p8', yaw: -146, pitch: 19 },
+            { to: 'p7', yaw: -113, pitch: -8 }
+          ]
+        },
+        p7: { links: [{ to: 'p6', yaw: 89, pitch: 0 }, { to: 'p8', yaw: 158, pitch: 6 }] },
         p8: {
           links: [
             { to: 'p7', yaw: 50, pitch: 7 },
@@ -144,7 +401,7 @@
           ]
         }
       };
-      // 底部导航/左右箭头的顺序（按 p1-8 排开）
+      // Order for bottom bar / edge arrows (p1–p8)
       var POINT_ORDER = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8'];
 
       var currentPoint = 'p1';
@@ -152,12 +409,174 @@
       var hotspotLayer = document.getElementById('hotspot-layer');
       var sky = document.getElementById('main-sky');
       var statusEl = document.getElementById('tour-status');
-      var jumpEl = document.getElementById('point-jump');
+      var workDropdownWrap = document.getElementById('work-dropdown-wrap');
+      var workDropdownBtn = document.getElementById('work-dropdown-btn');
+      var workDropdownPanel = document.getElementById('work-dropdown-panel');
       var fadeEl = document.getElementById('fade-overlay');
       var navPrevBtn = document.getElementById('nav-prev-btn');
       var navNextBtn = document.getElementById('nav-next-btn');
+      var WORK_COUNT = 23;
 
-      // 界面显示使用真实点位编号（p1~p8）
+      // Work titles (keep in sync with artwork-360 WORK_META titles)
+      var WORK_MENU_TITLES = {
+        1: 'Orchard',
+        2: 'Wanderer / Angel Eyes',
+        3: 'Allegory of Creation',
+        4: 'A Quite Temptation',
+        5: 'Inheritance',
+        6: 'Inner',
+        7: 'Anonymous Was a Woman',
+        8: 'The Space I Take',
+        9: 'The Golden Temple',
+        10: 'ALIEN',
+        11: 'Superstitious',
+        12: 'Soft Armor, Heavy Heart',
+        13: 'Embodied Moonlight Garden',
+        14: 'Manufactured Self / Toward the Window',
+        15: 'Serious Actor',
+        16: 'In the Other Room and Metamorphoses',
+        17: 'State: White',
+        18: 'Erindale',
+        19: 'The Blossoms in 4AM',
+        20: 'Lineage',
+        21: 'Depth Perception',
+        22: 'Colour Yield Memory’s Key (CYMK)',
+        23: 'Dry Brush Self Portrait'
+      };
+
+      function getWorkMenuLabel(id) {
+        var title = WORK_MENU_TITLES[id];
+        if (title != null && String(title).trim()) return String(title).trim();
+        return 'Work ' + id;
+      }
+
+      // Booth markers 1–23 in SVG viewBox 0–100 (x right, y down)
+      var WORK_MAP_POS = {
+        1: [10, 90],
+        2: [18, 90],
+        3: [26, 90],
+        4: [74, 90],
+        5: [82, 90],
+        6: [90, 90],
+        7: [78, 72],
+        8: [50, 94],
+        9: [68, 58],
+        10: [38, 62],
+        11: [22, 50],
+        12: [8, 55],
+        13: [52, 38],
+        14: [82, 70],
+        15: [88, 44],
+        16: [88, 54],
+        17: [88, 12],
+        18: [70, 40],
+        19: [92, 20],
+        20: [62, 8],
+        21: [50, 8],
+        22: [38, 8],
+        23: [10, 12]
+      };
+
+      /* Viewpoint n (blue label on sketch) ↔ panorama id pn — same x/y as #point-n circles */
+      var POINT_TO_MAP = {
+        p1: { x: 18, y: 88 },
+        p2: { x: 88, y: 88 },
+        p3: { x: 78, y: 60 },
+        p4: { x: 50, y: 68 },
+        p5: { x: 28, y: 48 },
+        p6: { x: 82, y: 40 },
+        p7: { x: 86, y: 14 },
+        p8: { x: 14, y: 14 }
+      };
+
+      /**
+       * Gray artwork shapes (rounded rects). Edit cx/cy/w/h/rx to nudge blocks; keep near WORK_MAP_POS.
+       */
+      var ARTWORK_SHAPES = [
+        { cx: 10, cy: 90, w: 5, h: 12, rx: 2.5 },
+        { cx: 18, cy: 90, w: 5, h: 12, rx: 2.5 },
+        { cx: 26, cy: 90, w: 5, h: 12, rx: 2.5 },
+        { cx: 74, cy: 90, w: 5, h: 12, rx: 2.5 },
+        { cx: 82, cy: 90, w: 5, h: 12, rx: 2.5 },
+        { cx: 90, cy: 90, w: 5, h: 12, rx: 2.5 },
+        { cx: 78, cy: 72, w: 9, h: 4.5, rx: 2 },
+        { cx: 50, cy: 94, w: 13, h: 4.5, rx: 2 },
+        { cx: 68, cy: 58, w: 7, h: 7, rx: 2.2 },
+        { cx: 38, cy: 62, w: 7, h: 7, rx: 2.2 },
+        { cx: 22, cy: 50, w: 4.5, h: 10, rx: 2.2 },
+        { cx: 8, cy: 55, w: 4.5, h: 10, rx: 2.2 },
+        { cx: 52, cy: 38, w: 7, h: 7, rx: 2.2 },
+        { cx: 82, cy: 70, w: 9, h: 4.5, rx: 2 },
+        { cx: 88, cy: 44, w: 4.5, h: 10, rx: 2.2 },
+        { cx: 88, cy: 54, w: 4.5, h: 10, rx: 2.2 },
+        { cx: 88, cy: 12, w: 7, h: 7, rx: 2 },
+        { cx: 70, cy: 40, w: 9, h: 4.5, rx: 2 },
+        { cx: 92, cy: 20, w: 7, h: 7, rx: 2 },
+        { cx: 62, cy: 8, w: 9, h: 4.5, rx: 2 },
+        { cx: 50, cy: 8, w: 9, h: 4.5, rx: 2 },
+        { cx: 38, cy: 8, w: 9, h: 4.5, rx: 2 },
+        { cx: 10, cy: 12, w: 5, h: 12, rx: 2.5 }
+      ];
+
+      function initArtworkShapes() {
+        var layer = document.getElementById('map-layer-artwork-shapes');
+        if (!layer) return;
+        layer.innerHTML = '';
+        var ns = 'http://www.w3.org/2000/svg';
+        ARTWORK_SHAPES.forEach(function (s) {
+          var r = document.createElementNS(ns, 'rect');
+          r.setAttribute('x', String(s.cx - s.w / 2));
+          r.setAttribute('y', String(s.cy - s.h / 2));
+          r.setAttribute('width', String(s.w));
+          r.setAttribute('height', String(s.h));
+          r.setAttribute('rx', String(s.rx));
+          r.setAttribute('ry', String(s.rx));
+          r.setAttribute('class', 'map-artwork-shape');
+          layer.appendChild(r);
+        });
+      }
+
+      function initExhibitionMap() {
+        var layer = document.getElementById('map-artworks-layer');
+        if (!layer) return;
+        layer.innerHTML = '';
+        var ns = 'http://www.w3.org/2000/svg';
+        for (var n = 1; n <= WORK_COUNT; n++) {
+          var pos = WORK_MAP_POS[n];
+          if (!pos) continue;
+          var c = document.createElementNS(ns, 'circle');
+          c.setAttribute('class', 'map-work-badge');
+          c.setAttribute('cx', String(pos[0]));
+          c.setAttribute('cy', String(pos[1]));
+          c.setAttribute('r', '2.4');
+          layer.appendChild(c);
+          var t = document.createElementNS(ns, 'text');
+          t.setAttribute('class', 'map-work-num');
+          t.setAttribute('x', String(pos[0]));
+          t.setAttribute('y', String(pos[1]));
+          t.textContent = String(n);
+          layer.appendChild(t);
+        }
+      }
+
+      function updateMapUserMarker() {
+        var g = document.getElementById('map-user-layer');
+        if (!g) return;
+        var p = POINT_TO_MAP[currentPoint];
+        if (!p) return;
+        g.setAttribute('transform', 'translate(' + p.x + ' ' + p.y + ')');
+      }
+
+      function updateMapNavHighlight() {
+        var n = parseInt(String(currentPoint).replace(/^p/, ''), 10);
+        if (isNaN(n)) return;
+        for (var i = 1; i <= 8; i++) {
+          var el = document.getElementById('point-' + i);
+          if (el) el.classList.toggle('map-nav-hit--active', i === n);
+        }
+      }
+
+      // Display uses point ids p1–p8
       function displayName(pointId) {
         return pointId;
       }
@@ -166,8 +585,11 @@
         var yaw = (yawDeg * Math.PI) / 180;
         var pitch = (pitchDeg * Math.PI) / 180;
         var x = radius * Math.sin(yaw) * Math.cos(pitch);
-        var y = radius * Math.sin(pitch);
         var z = -radius * Math.cos(yaw) * Math.cos(pitch);
+        // Floor height + pitch affects y so vertical aim feels natural
+        var baseFloor = 0.02;
+        var y = baseFloor + radius * 0.28 * Math.sin(pitch);
+        y = Math.max(-0.45, Math.min(0.55, y));
         return x + ' ' + y + ' ' + z;
       }
 
@@ -175,14 +597,14 @@
         var node = document.createElement('a-entity');
         node.setAttribute('position', toPosition(link.yaw, link.pitch, 4));
         node.setAttribute('data-target', link.to);
-        node.setAttribute('look-at', '[camera]');
         var roll = typeof link.roll === 'number' ? link.roll : 0;
 
         var icon = document.createElement('a-circle');
         icon.classList.add('clickable');
         icon.setAttribute('radius', '0.208');
         icon.setAttribute('material', 'shader: flat; color: #ffffff; transparent: true; opacity: 0.2; side: double');
-        icon.setAttribute('rotation', '0 0 ' + roll);
+        // Circle lies in floor plane (x–z)
+        icon.setAttribute('rotation', '-90 0 ' + roll);
         node.appendChild(icon);
 
         var ring = document.createElement('a-ring');
@@ -190,7 +612,7 @@
         ring.setAttribute('radius-inner', '0.24');
         ring.setAttribute('radius-outer', '0.272');
         ring.setAttribute('material', 'shader: flat; color: #ffffff; transparent: true; opacity: 0.9; side: double');
-        ring.setAttribute('rotation', '0 0 ' + roll);
+        ring.setAttribute('rotation', '-90 0 ' + roll);
         node.appendChild(ring);
 
         var text = document.createElement('a-text');
@@ -203,6 +625,8 @@
         text.setAttribute('color', '#ffffff');
         text.setAttribute('width', '2.3');
         text.setAttribute('letter-spacing', '2');
+        // Label faces camera for readability
+        text.setAttribute('look-at', '[camera]');
         node.appendChild(text);
 
         function handlePick() {
@@ -221,18 +645,37 @@
         return POINT_ORDER[nextIdx];
       }
 
-      function renderJumpButtons() {
-        jumpEl.innerHTML = '';
-        var ids = POINT_ORDER;
-        ids.forEach(function (id) {
-          var btn = document.createElement('button');
-          btn.type = 'button';
-          btn.textContent = displayName(id).toUpperCase();
-          if (id === currentPoint) btn.classList.add('active');
-          btn.addEventListener('click', function () {
-            if (!switchLocked) goToPoint(id);
-          });
-          jumpEl.appendChild(btn);
+      function setWorkDropdownOpen(open) {
+        if (!workDropdownPanel || !workDropdownBtn) return;
+        workDropdownPanel.classList.toggle('open', open);
+        workDropdownBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+
+      function initWorkDropdown() {
+        if (!workDropdownPanel || !workDropdownBtn || !workDropdownWrap) return;
+        workDropdownPanel.innerHTML = '';
+        for (var n = 1; n <= WORK_COUNT; n++) {
+          (function (id) {
+            var opt = document.createElement('button');
+            opt.type = 'button';
+            opt.setAttribute('role', 'option');
+            opt.textContent = getWorkMenuLabel(id);
+            opt.addEventListener('click', function () {
+              setWorkDropdownOpen(false);
+              navigateWithTransition('../artwork-360/index.html?id=' + id);
+            });
+            workDropdownPanel.appendChild(opt);
+          })(n);
+        }
+        workDropdownBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          setWorkDropdownOpen(!workDropdownPanel.classList.contains('open'));
+        });
+        document.addEventListener('click', function () {
+          setWorkDropdownOpen(false);
+        });
+        workDropdownWrap.addEventListener('click', function (e) {
+          e.stopPropagation();
         });
       }
 
@@ -245,7 +688,8 @@
         });
         statusEl.textContent =
           'Point ' + displayName(currentPoint).toUpperCase() + ' / 8';
-        renderJumpButtons();
+        updateMapUserMarker();
+        updateMapNavHighlight();
       }
 
       function goToPoint(pointId) {
@@ -262,6 +706,36 @@
         }, 200);
       }
 
+      /** Public hook for 360 sync: viewpoint id 1–8 → panorama p1–p8 */
+      function goToViewpoint(id) {
+        var n = typeof id === 'number' ? id : parseInt(String(id), 10);
+        if (isNaN(n) || n < 1 || n > 8) return;
+        goToPoint('p' + n);
+      }
+      window.goToViewpoint = goToViewpoint;
+
+      function initMapNavigation() {
+        function bind(g) {
+          var vid = parseInt(g.getAttribute('data-view-id'), 10);
+          if (isNaN(vid)) return;
+          function onActivate(e) {
+            if (e) e.preventDefault();
+            goToViewpoint(vid);
+          }
+          g.addEventListener('click', onActivate);
+          g.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onActivate(e);
+            }
+          });
+        }
+        for (var i = 1; i <= 8; i++) {
+          var el = document.getElementById('point-' + i);
+          if (el) bind(el);
+        }
+      }
+
       function setupArrowNavigation() {
         if (navPrevBtn) {
           navPrevBtn.addEventListener('click', function () {
@@ -275,12 +749,66 @@
         }
       }
 
+      /**
+       * A-Frame injects fullscreen / VR buttons with varying class names; move them left of the mini-map.
+       */
+      function positionAframeSceneUi() {
+        var scene = document.querySelector('a-scene');
+        if (!scene) return;
+        var mapW = getComputedStyle(document.body).getPropertyValue('--exhibition-map-w').trim();
+        if (!mapW) mapW = 'min(340px, 46vw)';
+        var rightPos = 'calc(20px + ' + mapW + ' + 14px)';
+        function applyCorner(el) {
+          if (!el) return;
+          el.style.setProperty('left', 'auto', 'important');
+          el.style.setProperty('right', rightPos, 'important');
+          el.style.setProperty('bottom', '22px', 'important');
+          el.style.setProperty('top', 'auto', 'important');
+          el.style.setProperty('margin', '0', 'important');
+        }
+        scene
+          .querySelectorAll(
+            '.a-fullscreen-button, .a-enter-vr-button, .a-enter-ar-button, [class*="fullscreen"], [class*="enter-vr"]'
+          )
+          .forEach(applyCorner);
+        scene.querySelectorAll('button').forEach(function (btn) {
+          var cls = btn.getAttribute('class') || '';
+          var t = (btn.getAttribute('title') || '').toLowerCase();
+          if (
+            cls.indexOf('fullscreen') !== -1 ||
+            cls.indexOf('enter-vr') !== -1 ||
+            cls.indexOf('enter-ar') !== -1 ||
+            t.indexOf('fullscreen') !== -1 ||
+            t.indexOf('enter vr') !== -1
+          ) {
+            applyCorner(btn);
+          }
+        });
+      }
+
+      function watchAframeSceneUi() {
+        var scene = document.querySelector('a-scene');
+        if (!scene || typeof MutationObserver === 'undefined') return;
+        var mo = new MutationObserver(function () {
+          positionAframeSceneUi();
+        });
+        mo.observe(scene, { childList: true, subtree: true });
+      }
+
       (function () {
         var scene = document.querySelector('a-scene');
         if (!scene) return;
         function boot() {
+          initWorkDropdown();
+          initArtworkShapes();
+          initExhibitionMap();
+          initMapNavigation();
           setupArrowNavigation();
           renderCurrentPoint();
+          positionAframeSceneUi();
+          setTimeout(positionAframeSceneUi, 200);
+          setTimeout(positionAframeSceneUi, 600);
+          watchAframeSceneUi();
         }
         if (scene.hasLoaded) boot();
         else scene.addEventListener('loaded', boot);

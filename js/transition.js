@@ -18,6 +18,14 @@
   var mode = 'transition'; // 'transition' | 'idleOverlay'
   var animId = null;
   var targetHref = '';
+  var navigateTimeoutId = null;
+
+  function clearNavigateTimeout() {
+    if (navigateTimeoutId != null) {
+      clearTimeout(navigateTimeoutId);
+      navigateTimeoutId = null;
+    }
+  }
 
   function resize() {
     canvas.width = window.innerWidth;
@@ -194,7 +202,24 @@
 
   // Navigate with transition
   window.navigateWithTransition = function (href) {
-    if (phase !== 'idle') return;
+    clearNavigateTimeout();
+
+    // 任意非 idle（退场 / 上一段转场尚未结束）时若直接 return，左右箭头会失灵；
+    // 取消待执行的跳转并重置星盘后再开始新一次过渡。
+    if (phase !== 'idle') {
+      window.stopIdleAstrolabe();
+    }
+
+    var idFromHref = String(href).match(/[?&#]id=(\d+)/i);
+    if (idFromHref) {
+      try {
+        sessionStorage.setItem('gallery_last_work_id', idFromHref[1]);
+      } catch (e) {}
+    }
+
+    try {
+      sessionStorage.setItem('gallery_transitioning', '1');
+    } catch (e) {}
     mode = 'transition';
     targetHref = href;
     phase = 'entering';
@@ -216,7 +241,8 @@
     }
 
     // Navigate after the entering + spin phase
-    setTimeout(function () {
+    navigateTimeoutId = setTimeout(function () {
+      navigateTimeoutId = null;
       window.location.href = targetHref;
     }, 1400);
   };
@@ -233,11 +259,4 @@
     resize();
     animate();
   }
-
-  // Before navigating, mark that we are transitioning
-  var origNav = window.navigateWithTransition;
-  window.navigateWithTransition = function (href) {
-    sessionStorage.setItem('gallery_transitioning', '1');
-    origNav(href);
-  };
 })();

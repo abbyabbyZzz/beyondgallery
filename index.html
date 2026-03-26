@@ -306,17 +306,23 @@
           label: 'Exhibition',
           href: 'exhibition/index.html',
           subtitle: 'Enter the Gallery',
-          angle: 0,
-          speed: 0,
+          slot: 0, // center
           ringCount: 3,
           parallaxDepth: 0.6
+        },
+        {
+          label: 'Collection of Works',
+          href: 'artwork-360/index.html?id=1',
+          subtitle: 'Browse all works',
+          slot: 1, // right
+          ringCount: 2,
+          parallaxDepth: 0.9
         },
         {
           label: 'About',
           href: 'about/index.html',
           subtitle: 'The Vision',
-          angle: Math.PI * 0.8,
-          speed: 0.00025,
+          slot: -1, // left
           ringCount: 2,
           parallaxDepth: 1.0
         }
@@ -325,7 +331,7 @@
       var mouse = { x: 0, y: 0, rawX: 0, rawY: 0 };
       var smoothMouse = { x: 0, y: 0 };
       var hoveredIdx = -1;
-      var hoverAnim = [0, 0];
+      var hoverAnim = new Array(PLANETS.length).fill(0);
       var time = 0;
       var fadeIn = 0;
 
@@ -357,11 +363,16 @@
 
       function getSizes() {
         var minDim = Math.min(window.innerWidth, window.innerHeight);
-        var mainR = minDim * 0.125;
+        // Larger, more spacious 3-up layout
+        var mainR = minDim * 0.152; // center (Exhibition)
+        var secR = minDim * 0.112; // sides (same size)
+        // keep enough spacing so circles never overlap on narrow screens
+        var minGap = 34;
+        var orbitDist = Math.max(mainR + secR + minGap, mainR * 2.75);
         return {
           mainR: mainR,
-          secR: minDim * 0.07,
-          orbitDist: mainR * 2.8
+          secR: secR,
+          orbitDist: orbitDist
         };
       }
 
@@ -474,41 +485,34 @@
         var px = smoothMouse.x * 30;
         var py = smoothMouse.y * 30;
 
-        // Update angles
-        for (var i = 0; i < PLANETS.length; i++) {
-          PLANETS[i].angle += PLANETS[i].speed;
-        }
-
-        // Compute positions
+        // Compute positions (3 in one row, no overlap)
         var positions = [];
         for (var j = 0; j < PLANETS.length; j++) {
           var p = PLANETS[j];
-          var orbitR = j === 0 ? 0 : sizes.orbitDist;
-          var baseR = j === 0 ? sizes.mainR : sizes.secR;
-          var posX = cx + Math.cos(p.angle) * orbitR + px * p.parallaxDepth;
-          var posY = cy + Math.sin(p.angle) * orbitR * 0.35 + py * p.parallaxDepth;
+          var baseR = p.slot === 0 ? sizes.mainR : sizes.secR;
+          var slot = typeof p.slot === 'number' ? p.slot : (j === 0 ? 0 : (j === 1 ? -1 : 1));
+          var posX = cx + slot * sizes.orbitDist + px * p.parallaxDepth;
+          // Lift the row slightly for a more open composition
+          var posY = cy - Math.min(60, h * 0.06) + py * p.parallaxDepth * 0.85;
           positions.push({ x: posX, y: posY, baseR: baseR });
         }
 
-        // Orbit path (dashed)
-        if (positions.length >= 2) {
-          var ocx = cx + px * 0.6;
-          var ocy = cy + py * 0.6;
-          ctx.beginPath();
-          ctx.ellipse(ocx, ocy, sizes.orbitDist, sizes.orbitDist * 0.35, 0, 0, Math.PI * 2);
-          ctx.strokeStyle = 'rgba(255,255,255,' + fadeIn * 0.04 + ')';
-          ctx.lineWidth = 0.5;
-          ctx.setLineDash([3, 8]);
-          ctx.stroke();
-          ctx.setLineDash([]);
-
-          // Connection line
-          ctx.beginPath();
-          ctx.moveTo(positions[0].x, positions[0].y);
-          ctx.lineTo(positions[1].x, positions[1].y);
-          ctx.strokeStyle = 'rgba(255,255,255,' + fadeIn * 0.04 + ')';
-          ctx.lineWidth = 0.5;
-          ctx.stroke();
+        // Connection line (subtle): left → center → right
+        if (positions.length >= 3) {
+          var leftIdx = PLANETS.findIndex(function (x) { return x.slot === -1; });
+          var midIdx = PLANETS.findIndex(function (x) { return x.slot === 0; });
+          var rightIdx = PLANETS.findIndex(function (x) { return x.slot === 1; });
+          if (leftIdx >= 0 && midIdx >= 0 && rightIdx >= 0) {
+            ctx.beginPath();
+            ctx.moveTo(positions[leftIdx].x, positions[leftIdx].y);
+            ctx.lineTo(positions[midIdx].x, positions[midIdx].y);
+            ctx.lineTo(positions[rightIdx].x, positions[rightIdx].y);
+            ctx.strokeStyle = 'rgba(255,255,255,' + fadeIn * 0.035 + ')';
+            ctx.lineWidth = 0.5;
+            ctx.setLineDash([3, 9]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
         }
 
         // Hit test
@@ -523,16 +527,24 @@
         hoveredIdx = newHovered;
 
         // Smooth hover animation
+        if (!hoverAnim || hoverAnim.length !== PLANETS.length) {
+          hoverAnim = new Array(PLANETS.length).fill(0);
+        }
         for (var k = 0; k < PLANETS.length; k++) {
           var target = newHovered === k ? 1 : 0;
           hoverAnim[k] = lerp(hoverAnim[k], target, 0.08);
         }
 
-        // Draw planets (back to front)
-        var drawOrder = [1, 0];
+        // Draw planets (back to front): side planets first, then center
+        var drawOrder = [];
+        for (var di = 0; di < PLANETS.length; di++) {
+          if (PLANETS[di].slot !== 0) drawOrder.push(di);
+        }
+        for (var di2 = 0; di2 < PLANETS.length; di2++) {
+          if (PLANETS[di2].slot === 0) drawOrder.push(di2);
+        }
         for (var d = 0; d < drawOrder.length; d++) {
           var idx = drawOrder[d];
-          if (idx >= PLANETS.length) continue;
           var pl = PLANETS[idx];
           var pos = positions[idx];
           var ht = hoverAnim[idx];
