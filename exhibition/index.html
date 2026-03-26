@@ -10,7 +10,8 @@
     <script src="https://unpkg.com/aframe-look-at-component@1.0.0/dist/aframe-look-at-component.min.js"></script>
     <style>
       .back-home,
-      .tour-status {
+      .tour-status,
+      .tour-hint {
         position: fixed;
         border-radius: 999px;
         border: 1px solid rgba(255, 255, 255, 0.5);
@@ -30,9 +31,27 @@
       }
       .tour-status {
         top: 20px;
+        right: 20px;
+        left: auto;
+        transform: none;
+        padding: 12px 24px;
+      }
+      .tour-hint {
+        position: fixed;
+        top: 20px;
         left: 50%;
         transform: translateX(-50%);
         padding: 12px 24px;
+        color: rgba(255, 255, 255, 0.92);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+      @media (max-width: 768px) {
+        .tour-hint {
+          display: none;
+        }
       }
       /* Work dropdown: opens upward, frosted glass */
       .work-dropdown-wrap {
@@ -172,7 +191,7 @@
       }
     </style>
   </head>
-  <body>
+  <body class="exhibition-hide-cursor">
     <div class="rotate-overlay" id="rotate-overlay" aria-hidden="true">
       <div class="rotate-card" role="dialog" aria-modal="true" aria-label="Rotate device">
         <div class="rotate-label">Notice</div>
@@ -182,6 +201,7 @@
     </div>
     <a href="../index.html" class="back-home" onclick="navigateWithTransition('../index.html'); return false;">Back to Main Menu</a>
     <div class="tour-status" id="tour-status">Point P1 / 8</div>
+    <div class="tour-hint" id="tour-hint">Press Ctrl to show cursor / unlock</div>
     <div class="work-dropdown-wrap" id="work-dropdown-wrap">
       <button type="button" class="work-dropdown-btn" id="work-dropdown-btn" aria-expanded="false" aria-haspopup="listbox">
         Works ▾
@@ -350,7 +370,7 @@
       </a-assets>
       <a-sky id="main-sky" src="#p1" rotation="0 -90 0"></a-sky>
       <a-entity id="hotspot-layer"></a-entity>
-      <a-entity camera look-controls position="0 1.6 0">
+      <a-entity camera look-controls="pointerLockEnabled: true" position="0 1.6 0">
         <a-cursor color="white" raycaster="objects: .clickable"></a-cursor>
       </a-entity>
     </a-scene>
@@ -818,11 +838,73 @@
         mo.observe(scene, { childList: true, subtree: true });
       }
 
+      function initPointerLock() {
+        var scene = document.querySelector('a-scene');
+        if (!scene) return;
+
+        var hintEl = document.getElementById('tour-hint');
+
+        function lock() {
+          try {
+            var canvas = scene.canvas;
+            if (!canvas || !canvas.requestPointerLock) return;
+            if (document.pointerLockElement === canvas) return;
+            canvas.requestPointerLock();
+          } catch (e) {}
+        }
+
+        function unlock() {
+          try {
+            if (document.exitPointerLock) document.exitPointerLock();
+          } catch (e) {}
+        }
+
+        function isLocked() {
+          try {
+            return !!scene.canvas && document.pointerLockElement === scene.canvas;
+          } catch (e) {}
+          return false;
+        }
+
+        // First interaction locks pointer (browser gesture requirement).
+        scene.addEventListener('click', lock);
+        scene.addEventListener('mousedown', lock);
+
+        // Ctrl toggles cursor + lock state.
+        window.addEventListener('keydown', function (e) {
+          if (e.key !== 'Control') return;
+          // Avoid repeat firing while holding the key.
+          if (e.repeat) return;
+          var locked = isLocked();
+          if (locked) {
+            unlock();
+            document.body.classList.add('show-cursor');
+          } else {
+            document.body.classList.remove('show-cursor');
+            lock();
+          }
+        });
+
+        // Keep cursor class/hint in sync with lock state.
+        try {
+          document.addEventListener('pointerlockchange', function () {
+            document.body.classList.add('exhibition-hide-cursor');
+            var locked = isLocked();
+            if (hintEl) {
+              hintEl.textContent = locked
+                ? 'Ctrl: show cursor / unlock'
+                : 'Ctrl: hide cursor / lock (click scene if needed)';
+            }
+          });
+        } catch (e) {}
+      }
+
       (function () {
         var scene = document.querySelector('a-scene');
         if (!scene) return;
         function boot() {
           initWorkDropdown();
+          initPointerLock();
           initArtworkShapes();
           initExhibitionMap();
           initMapNavigation();
