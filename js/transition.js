@@ -200,6 +200,26 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   };
 
+  /** 作品详情页内仅更换 id：与 exhibition 等全站转场区分 */
+  function isArtworkDetailWorkSwitch(href) {
+    try {
+      var resolved = new URL(href, window.location.href);
+      if (resolved.origin !== window.location.origin) return false;
+      var curPath = window.location.pathname.replace(/\\/g, '/');
+      var nextPath = resolved.pathname.replace(/\\/g, '/');
+      if (curPath.indexOf('artwork-360') === -1) return false;
+      var norm = function (p) {
+        return p.replace(/\/index\.html$/i, '').replace(/\/$/, '');
+      };
+      if (norm(curPath) !== norm(nextPath)) return false;
+      var nextId = resolved.searchParams.get('id');
+      if (nextId == null || String(nextId).trim() === '') return false;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   // Navigate with transition
   window.navigateWithTransition = function (href) {
     clearNavigateTimeout();
@@ -215,6 +235,18 @@
       try {
         sessionStorage.setItem('gallery_last_work_id', idFromHref[1]);
       } catch (e) {}
+    }
+
+    var instantWorkSwitch = isArtworkDetailWorkSwitch(href);
+    if (instantWorkSwitch) {
+      if (typeof window.__bgmPersistTime === 'function') {
+        try {
+          window.__bgmPersistTime();
+        } catch (e) {}
+      }
+      // 不写 gallery_transitioning，新页不播退场星盘；无转场遮罩
+      window.location.href = href;
+      return;
     }
 
     try {
@@ -233,7 +265,11 @@
     resize();
     animate();
 
-    // 如果有 BGM，则在切页前做一个简单的音量渐变
+    if (typeof window.__bgmPersistTime === 'function') {
+      try {
+        window.__bgmPersistTime();
+      } catch (e) {}
+    }
     if (typeof window.__bgmFadeForTransition === 'function') {
       try {
         window.__bgmFadeForTransition();
@@ -243,6 +279,11 @@
     // Navigate after the entering + spin phase
     navigateTimeoutId = setTimeout(function () {
       navigateTimeoutId = null;
+      if (typeof window.__bgmPersistTime === 'function') {
+        try {
+          window.__bgmPersistTime();
+        } catch (e) {}
+      }
       window.location.href = targetHref;
     }, 1400);
   };

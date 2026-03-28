@@ -1,4 +1,7 @@
 ;(function () {
+  /** 全站 BGM 最大音量（相对浏览器 1.0 上限） */
+  var BGM_MAX_VOLUME = 0.7
+
   function initBgm() {
     var audio = document.getElementById('bgm-audio')
 
@@ -13,7 +16,7 @@
       document.body.appendChild(audio)
     }
 
-    audio.volume = 1
+    audio.volume = BGM_MAX_VOLUME
 
     var preferenceSet = false
     try {
@@ -43,7 +46,7 @@
       audio.volume = 0
     } else {
       audio.muted = muted
-      audio.volume = muted ? 0 : 1
+      audio.volume = muted ? 0 : BGM_MAX_VOLUME
     }
 
     // 创建 / 复用左下角静音按钮
@@ -118,11 +121,11 @@
         })
       } else {
         audio.muted = false
-        audio.volume = Math.max(audio.volume, 0.05)
+        audio.volume = Math.max(audio.volume, BGM_MAX_VOLUME * 0.06)
         audio
           .play()
           .then(function () {
-            fadeVolume(1, 600, function () {
+            fadeVolume(BGM_MAX_VOLUME, 600, function () {
               refreshLabel()
             })
           })
@@ -131,6 +134,15 @@
             refreshLabel()
           })
       }
+    }
+
+    // 跳转前把当前进度写入 sessionStorage，减少切页后续播误差（由 transition.js 调用）
+    window.__bgmPersistTime = function () {
+      try {
+        if (audio && !isNaN(audio.currentTime)) {
+          sessionStorage.setItem('bgmTime', String(audio.currentTime))
+        }
+      } catch (e) {}
     }
 
     // 页面切换时的渐变用（由 transition.js 调用）

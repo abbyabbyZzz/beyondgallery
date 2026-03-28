@@ -6,11 +6,9 @@
     <meta name="theme-color" content="#050508" />
     <title>Gallery Beyond - 360 Tour</title>
     <link rel="stylesheet" href="../css/styles.css" />
-    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-    <script src="https://unpkg.com/aframe-look-at-component@1.0.0/dist/aframe-look-at-component.min.js"></script>
+    <link rel="stylesheet" href="exhibition-marzipano.css" />
     <style>
       .back-home,
-      .tour-status,
       .tour-hint {
         position: fixed;
         border-radius: 999px;
@@ -23,18 +21,125 @@
         font-size: 11px;
         z-index: 60;
       }
-        .back-home {
+      .back-home {
         top: 20px;
         left: 20px;
         text-decoration: none;
         padding: 12px 32px;
       }
-      .tour-status {
+      .point-dropdown-wrap {
+        position: fixed;
         top: 20px;
         right: 20px;
+        z-index: 60;
+        width: 60px;
+        height: 60px;
+        text-transform: none;
+      }
+      .point-dropdown-btn {
+        box-sizing: border-box;
+        width: 60px;
+        height: 60px;
+        padding: 0;
+        margin: 0;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        background: rgba(5, 5, 8, 0.45);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        color: rgba(255, 255, 255, 0.95);
+        letter-spacing: 2px;
+        font-size: 13px;
+        font-weight: 500;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+      }
+      .point-dropdown-btn:hover {
+        background: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.65);
+      }
+      .point-dropdown-btn:focus-visible {
+        outline: 1px solid rgba(255, 255, 255, 0.35);
+        outline-offset: 3px;
+      }
+      .point-dropdown-panel {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
         left: auto;
-        transform: none;
-        padding: 12px 24px;
+        width: max-content;
+        max-width: min(calc(100vw - 40px), 300px);
+        padding: 12px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        background: rgba(5, 5, 8, 0.42);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        box-shadow: none;
+        display: grid;
+        grid-template-columns: repeat(4, 48px);
+        grid-template-rows: repeat(2, 48px);
+        gap: 10px;
+        max-height: none;
+        overflow: visible;
+      }
+      .point-dropdown-panel .point-dropdown-opt {
+        box-sizing: border-box;
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        min-height: 48px;
+        padding: 0;
+        margin: 0;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.42);
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.92);
+        font-size: 12px;
+        font-weight: 500;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        letter-spacing: 1.5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+      }
+      .point-dropdown-panel .point-dropdown-opt:hover {
+        background: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.55);
+      }
+      .point-dropdown-panel .point-dropdown-opt.is-current {
+        background: rgba(255, 255, 255, 0.18);
+        border-color: rgba(255, 255, 255, 0.7);
+        box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.12);
+      }
+      .point-dropdown-panel .point-dropdown-opt:focus-visible {
+        outline: 1px solid rgba(255, 255, 255, 0.4);
+        outline-offset: 2px;
+      }
+      @media (max-width: 360px) {
+        .point-dropdown-panel {
+          grid-template-columns: repeat(4, 42px);
+          grid-template-rows: repeat(2, 42px);
+          gap: 8px;
+          padding: 10px;
+        }
+        .point-dropdown-panel .point-dropdown-opt {
+          width: 42px;
+          height: 42px;
+          min-width: 42px;
+          min-height: 42px;
+          font-size: 11px;
+        }
       }
       .tour-hint {
         position: fixed;
@@ -84,7 +189,6 @@
         border-color: rgba(255, 255, 255, 0.6);
       }
       .work-dropdown-panel {
-        display: none;
         position: absolute;
         left: 0;
         right: 0;
@@ -109,9 +213,6 @@
       .work-dropdown-panel::-webkit-scrollbar-track {
         background: rgba(0, 0, 0, 0.25);
         border-radius: 4px;
-      }
-      .work-dropdown-panel.open {
-        display: block;
       }
       .work-dropdown-panel button {
         display: block;
@@ -189,9 +290,10 @@
         outline: 1px solid rgba(255, 255, 255, 0.35);
         outline-offset: -2px;
       }
+
     </style>
   </head>
-  <body class="exhibition-hide-cursor">
+  <body>
     <div class="rotate-overlay" id="rotate-overlay" aria-hidden="true">
       <div class="rotate-card" role="dialog" aria-modal="true" aria-label="Rotate device">
         <div class="rotate-label">Notice</div>
@@ -199,181 +301,65 @@
         <p class="rotate-desc">This experience is best viewed in landscape orientation.</p>
       </div>
     </div>
+    <!-- Full-screen viewer first so fixed UI (z-index) and later siblings stack above -->
+    <div id="marzipano-viewer" class="marzipano-viewer" aria-label="360 exhibition view"></div>
     <a href="../index.html" class="back-home" onclick="navigateWithTransition('../index.html'); return false;">Back to Main Menu</a>
-    <div class="tour-status" id="tour-status">Point P1 / 8</div>
-    <div class="tour-hint" id="tour-hint">Press Ctrl to show cursor / unlock</div>
+    <div class="point-dropdown-wrap" id="point-dropdown-wrap">
+      <button
+        type="button"
+        class="point-dropdown-btn"
+        id="point-dropdown-btn"
+        aria-expanded="false"
+        aria-haspopup="listbox"
+        aria-label="Choose tour point"
+      >
+        <span id="point-dropdown-label">P1</span>
+      </button>
+      <div
+        class="point-dropdown-panel ui-dropdown-panel"
+        id="point-dropdown-panel"
+        role="listbox"
+        aria-label="Tour points 1 to 8"
+      ></div>
+    </div>
+    <div class="tour-hint" id="tour-hint">Drag to look around</div>
     <div class="work-dropdown-wrap" id="work-dropdown-wrap">
       <button type="button" class="work-dropdown-btn" id="work-dropdown-btn" aria-expanded="false" aria-haspopup="listbox">
         Works ▾
       </button>
-      <div class="work-dropdown-panel" id="work-dropdown-panel" role="listbox" aria-label="Works 1 to 23"></div>
+      <div
+        class="work-dropdown-panel ui-dropdown-panel ui-dropdown-panel--up"
+        id="work-dropdown-panel"
+        role="listbox"
+        aria-label="Works 1 to 23"
+      ></div>
     </div>
     <button type="button" id="nav-prev-btn" class="edge-nav left" aria-label="Previous point">&lt;</button>
     <button type="button" id="nav-next-btn" class="edge-nav right" aria-label="Next point">&gt;</button>
     <div class="fade-overlay" id="fade-overlay"></div>
-    <aside class="exhibition-map" id="exhibition-map" aria-label="Exhibition floor plan">
-      <p class="exhibition-map__label">Floor plan</p>
-      <!--
-        Mini-map coordinate system: viewBox 0 0 100 100 (unitless SVG coords).
-        Tune layout by editing line endpoints below, WORK_MAP_POS / ARTWORK_SHAPES / POINT_TO_MAP in script.
-      -->
-      <svg id="exhibition-map-svg" viewBox="0 0 100 100" role="img" aria-label="Gallery floor plan">
-        <defs>
-          <filter id="map-floor-shadow" x="-5%" y="-5%" width="110%" height="110%">
-            <feDropShadow dx="0" dy="0.6" stdDeviation="1.2" flood-color="#000" flood-opacity="0.12" />
-          </filter>
-        </defs>
-        <!-- Layer: floor -->
-        <rect
-          class="map-floor"
-          x="6"
-          y="6"
-          width="88"
-          height="88"
-          filter="url(#map-floor-shadow)"
-        />
-        <!-- Layer: walls (black) — outer rectangle + 3 internal partitions with gaps -->
-        <g id="map-layer-walls" class="map-layer-walls" aria-hidden="true">
-          <line class="map-wall-black" x1="6" y1="6" x2="94" y2="6" />
-          <line class="map-wall-black" x1="94" y1="6" x2="94" y2="94" />
-          <line class="map-wall-black" x1="94" y1="94" x2="6" y2="94" />
-          <line class="map-wall-black" x1="6" y1="94" x2="6" y2="6" />
-          <!-- Bottom third: horizontal partition, opening in the middle -->
-          <line class="map-wall-black" x1="6" y1="76" x2="36" y2="76" />
-          <line class="map-wall-black" x1="64" y1="76" x2="94" y2="76" />
-          <!-- Middle right: segment from right wall inward -->
-          <line class="map-wall-black" x1="94" y1="52" x2="70" y2="52" />
-          <!-- Upper right: segment from right wall inward -->
-          <line class="map-wall-black" x1="94" y1="26" x2="70" y2="26" />
-        </g>
-        <!-- Layer: gray artwork blocks (filled by initArtworkShapes()) -->
-        <g id="map-layer-artwork-shapes"></g>
-        <!-- Layer: pink ID badges 1–23 (filled by initExhibitionMap()) -->
-        <g id="map-artworks-layer"></g>
-        <!-- Layer: blue viewpoints 1–8 — clickable; maps to panorama p1–p8 -->
-        <g id="map-layer-viewpoints" pointer-events="all">
-          <g
-            id="point-1"
-            class="map-nav-hit"
-            data-view-id="1"
-            role="button"
-            tabindex="0"
-            focusable="true"
-            aria-label="Viewpoint 1"
-          >
-            <circle class="map-nav-point" cx="18" cy="88" r="3.2" />
-            <text class="map-nav-num" x="18" y="88">1</text>
-          </g>
-          <g
-            id="point-2"
-            class="map-nav-hit"
-            data-view-id="2"
-            role="button"
-            tabindex="0"
-            focusable="true"
-            aria-label="Viewpoint 2"
-          >
-            <circle class="map-nav-point" cx="88" cy="88" r="3.2" />
-            <text class="map-nav-num" x="88" y="88">2</text>
-          </g>
-          <g
-            id="point-3"
-            class="map-nav-hit"
-            data-view-id="3"
-            role="button"
-            tabindex="0"
-            focusable="true"
-            aria-label="Viewpoint 3"
-          >
-            <circle class="map-nav-point" cx="78" cy="60" r="3.2" />
-            <text class="map-nav-num" x="78" y="60">3</text>
-          </g>
-          <g
-            id="point-4"
-            class="map-nav-hit"
-            data-view-id="4"
-            role="button"
-            tabindex="0"
-            focusable="true"
-            aria-label="Viewpoint 4"
-          >
-            <circle class="map-nav-point" cx="50" cy="68" r="3.2" />
-            <text class="map-nav-num" x="50" y="68">4</text>
-          </g>
-          <g
-            id="point-5"
-            class="map-nav-hit"
-            data-view-id="5"
-            role="button"
-            tabindex="0"
-            focusable="true"
-            aria-label="Viewpoint 5"
-          >
-            <circle class="map-nav-point" cx="28" cy="48" r="3.2" />
-            <text class="map-nav-num" x="28" y="48">5</text>
-          </g>
-          <g
-            id="point-6"
-            class="map-nav-hit"
-            data-view-id="6"
-            role="button"
-            tabindex="0"
-            focusable="true"
-            aria-label="Viewpoint 6"
-          >
-            <circle class="map-nav-point" cx="82" cy="40" r="3.2" />
-            <text class="map-nav-num" x="82" y="40">6</text>
-          </g>
-          <g
-            id="point-7"
-            class="map-nav-hit"
-            data-view-id="7"
-            role="button"
-            tabindex="0"
-            focusable="true"
-            aria-label="Viewpoint 7"
-          >
-            <circle class="map-nav-point" cx="86" cy="14" r="3.2" />
-            <text class="map-nav-num" x="86" y="14">7</text>
-          </g>
-          <g
-            id="point-8"
-            class="map-nav-hit"
-            data-view-id="8"
-            role="button"
-            tabindex="0"
-            focusable="true"
-            aria-label="Viewpoint 8"
-          >
-            <circle class="map-nav-point" cx="14" cy="14" r="3.2" />
-            <text class="map-nav-num" x="14" y="14">8</text>
-          </g>
-        </g>
-        <!-- Layer: current user (synced with current panorama point) -->
-        <g id="map-user-layer" transform="translate(18, 88)">
-          <circle class="map-you-pulse" cx="0" cy="0" r="3.2" />
-          <circle class="map-you" id="map-user-dot" cx="0" cy="0" r="2" />
-        </g>
-      </svg>
-    </aside>
-    <a-scene renderer="antialias: true">
-      <a-assets>
-        <img id="p1" src="../360/location/p1.JPG" crossorigin="anonymous" />
-        <img id="p2" src="../360/location/p2.JPG" crossorigin="anonymous" />
-        <img id="p3" src="../360/location/p3.JPG" crossorigin="anonymous" />
-        <img id="p4" src="../360/location/p4.JPG" crossorigin="anonymous" />
-        <img id="p5" src="../360/location/p5.JPG" crossorigin="anonymous" />
-        <img id="p6" src="../360/location/p6.JPG" crossorigin="anonymous" />
-        <img id="p7" src="../360/location/p7.JPG" crossorigin="anonymous" />
-        <img id="p8" src="../360/location/p8.JPG" crossorigin="anonymous" />
-        <audio id="bgm-audio" src="../bgm.mp3" preload="auto" loop="true"></audio>
-      </a-assets>
-      <a-sky id="main-sky" src="#p1" rotation="0 -90 0"></a-sky>
-      <a-entity id="hotspot-layer"></a-entity>
-      <a-entity camera look-controls="pointerLockEnabled: true" position="0 1.6 0">
-        <a-cursor color="white" raycaster="objects: .clickable"></a-cursor>
-      </a-entity>
-    </a-scene>
+    <audio id="bgm-audio" src="../bgm.mp3" preload="auto" loop="true"></audio>
+    <!-- Marzipano demo expects bowser/screenfull globals; stubs are enough for the viewer -->
+    <script>
+      window.bowser = window.bowser || { msie: false, version: '99' };
+      window.screenfull =
+        window.screenfull ||
+        {
+          enabled: false,
+          isFullscreen: false,
+          request: function () {},
+          exit: function () {},
+          toggle: function () {},
+          on: function () {}
+        };
+    </script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/marzipano/0.10.2/marzipano.min.js"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <!-- Offline: put export’s marzipano.js at marzipano/vendor/marzipano.js and swap the src above -->
+    <script src="marzipano/data.js"></script>
+    <script src="../js/exhibition-marzipano.js"></script>
     <script src="../js/bgm.js"></script>
     <script src="../js/transition.js"></script>
     <script>
@@ -449,9 +435,9 @@
 
       var currentPoint = 'p1';
       var switchLocked = false;
-      var hotspotLayer = document.getElementById('hotspot-layer');
-      var sky = document.getElementById('main-sky');
-      var statusEl = document.getElementById('tour-status');
+      var pointDropdownWrap = document.getElementById('point-dropdown-wrap');
+      var pointDropdownBtn = document.getElementById('point-dropdown-btn');
+      var pointDropdownPanel = document.getElementById('point-dropdown-panel');
       var workDropdownWrap = document.getElementById('work-dropdown-wrap');
       var workDropdownBtn = document.getElementById('work-dropdown-btn');
       var workDropdownPanel = document.getElementById('work-dropdown-panel');
@@ -493,192 +479,52 @@
         return 'Work ' + id;
       }
 
-      // Booth markers 1–23 in SVG viewBox 0–100 (x right, y down)
-      var WORK_MAP_POS = {
-        1: [10, 90],
-        2: [18, 90],
-        3: [26, 90],
-        4: [74, 90],
-        5: [82, 90],
-        6: [90, 90],
-        7: [78, 72],
-        8: [50, 94],
-        9: [68, 58],
-        10: [38, 62],
-        11: [22, 50],
-        12: [8, 55],
-        13: [52, 38],
-        14: [82, 70],
-        15: [88, 44],
-        16: [88, 54],
-        17: [88, 12],
-        18: [70, 40],
-        19: [92, 20],
-        20: [62, 8],
-        21: [50, 8],
-        22: [38, 8],
-        23: [10, 12]
-      };
-
-      /* Viewpoint n (blue label on sketch) ↔ panorama id pn — same x/y as #point-n circles */
-      var POINT_TO_MAP = {
-        p1: { x: 18, y: 88 },
-        p2: { x: 88, y: 88 },
-        p3: { x: 78, y: 60 },
-        p4: { x: 50, y: 68 },
-        p5: { x: 28, y: 48 },
-        p6: { x: 82, y: 40 },
-        p7: { x: 86, y: 14 },
-        p8: { x: 14, y: 14 }
-      };
-
-      /**
-       * Gray artwork shapes (rounded rects). Edit cx/cy/w/h/rx to nudge blocks; keep near WORK_MAP_POS.
-       */
-      var ARTWORK_SHAPES = [
-        { cx: 10, cy: 90, w: 5, h: 12, rx: 2.5 },
-        { cx: 18, cy: 90, w: 5, h: 12, rx: 2.5 },
-        { cx: 26, cy: 90, w: 5, h: 12, rx: 2.5 },
-        { cx: 74, cy: 90, w: 5, h: 12, rx: 2.5 },
-        { cx: 82, cy: 90, w: 5, h: 12, rx: 2.5 },
-        { cx: 90, cy: 90, w: 5, h: 12, rx: 2.5 },
-        { cx: 78, cy: 72, w: 9, h: 4.5, rx: 2 },
-        { cx: 50, cy: 94, w: 13, h: 4.5, rx: 2 },
-        { cx: 68, cy: 58, w: 7, h: 7, rx: 2.2 },
-        { cx: 38, cy: 62, w: 7, h: 7, rx: 2.2 },
-        { cx: 22, cy: 50, w: 4.5, h: 10, rx: 2.2 },
-        { cx: 8, cy: 55, w: 4.5, h: 10, rx: 2.2 },
-        { cx: 52, cy: 38, w: 7, h: 7, rx: 2.2 },
-        { cx: 82, cy: 70, w: 9, h: 4.5, rx: 2 },
-        { cx: 88, cy: 44, w: 4.5, h: 10, rx: 2.2 },
-        { cx: 88, cy: 54, w: 4.5, h: 10, rx: 2.2 },
-        { cx: 88, cy: 12, w: 7, h: 7, rx: 2 },
-        { cx: 70, cy: 40, w: 9, h: 4.5, rx: 2 },
-        { cx: 92, cy: 20, w: 7, h: 7, rx: 2 },
-        { cx: 62, cy: 8, w: 9, h: 4.5, rx: 2 },
-        { cx: 50, cy: 8, w: 9, h: 4.5, rx: 2 },
-        { cx: 38, cy: 8, w: 9, h: 4.5, rx: 2 },
-        { cx: 10, cy: 12, w: 5, h: 12, rx: 2.5 }
-      ];
-
-      function initArtworkShapes() {
-        var layer = document.getElementById('map-layer-artwork-shapes');
-        if (!layer) return;
-        layer.innerHTML = '';
-        var ns = 'http://www.w3.org/2000/svg';
-        ARTWORK_SHAPES.forEach(function (s) {
-          var r = document.createElementNS(ns, 'rect');
-          r.setAttribute('x', String(s.cx - s.w / 2));
-          r.setAttribute('y', String(s.cy - s.h / 2));
-          r.setAttribute('width', String(s.w));
-          r.setAttribute('height', String(s.h));
-          r.setAttribute('rx', String(s.rx));
-          r.setAttribute('ry', String(s.rx));
-          r.setAttribute('class', 'map-artwork-shape');
-          layer.appendChild(r);
-        });
-      }
-
-      function initExhibitionMap() {
-        var layer = document.getElementById('map-artworks-layer');
-        if (!layer) return;
-        layer.innerHTML = '';
-        var ns = 'http://www.w3.org/2000/svg';
-        for (var n = 1; n <= WORK_COUNT; n++) {
-          var pos = WORK_MAP_POS[n];
-          if (!pos) continue;
-          var c = document.createElementNS(ns, 'circle');
-          c.setAttribute('class', 'map-work-badge');
-          c.setAttribute('cx', String(pos[0]));
-          c.setAttribute('cy', String(pos[1]));
-          c.setAttribute('r', '2.4');
-          layer.appendChild(c);
-          var t = document.createElementNS(ns, 'text');
-          t.setAttribute('class', 'map-work-num');
-          t.setAttribute('x', String(pos[0]));
-          t.setAttribute('y', String(pos[1]));
-          t.textContent = String(n);
-          layer.appendChild(t);
-        }
-      }
-
-      function updateMapUserMarker() {
-        var g = document.getElementById('map-user-layer');
-        if (!g) return;
-        var p = POINT_TO_MAP[currentPoint];
-        if (!p) return;
-        g.setAttribute('transform', 'translate(' + p.x + ' ' + p.y + ')');
-      }
-
-      function updateMapNavHighlight() {
-        var n = parseInt(String(currentPoint).replace(/^p/, ''), 10);
-        if (isNaN(n)) return;
-        for (var i = 1; i <= 8; i++) {
-          var el = document.getElementById('point-' + i);
-          if (el) el.classList.toggle('map-nav-hit--active', i === n);
-        }
-      }
-
       // Display uses point ids p1–p8
       function displayName(pointId) {
         return pointId;
       }
 
-      function toPosition(yawDeg, pitchDeg, radius) {
-        var yaw = (yawDeg * Math.PI) / 180;
-        var pitch = (pitchDeg * Math.PI) / 180;
-        var x = radius * Math.sin(yaw) * Math.cos(pitch);
-        var z = -radius * Math.cos(yaw) * Math.cos(pitch);
-        // Floor height + pitch affects y so vertical aim feels natural
-        var baseFloor = 0.02;
-        var y = baseFloor + radius * 0.28 * Math.sin(pitch);
-        y = Math.max(-0.45, Math.min(0.55, y));
-        return x + ' ' + y + ' ' + z;
+      /** UI label: P1 … P8 (matches site typography) */
+      function formatPointLabel(pointId) {
+        var s = String(pointId || '');
+        return s.replace(/^p/i, 'P');
       }
 
-      function createHotspot(link) {
-        var node = document.createElement('a-entity');
-        node.setAttribute('position', toPosition(link.yaw, link.pitch, 4));
-        node.setAttribute('data-target', link.to);
-        var roll = typeof link.roll === 'number' ? link.roll : 0;
-
-        var icon = document.createElement('a-circle');
-        icon.classList.add('clickable');
-        icon.setAttribute('radius', '0.208');
-        icon.setAttribute('material', 'shader: flat; color: #ffffff; transparent: true; opacity: 0.2; side: double');
-        // Circle lies in floor plane (x–z)
-        icon.setAttribute('rotation', '-90 0 ' + roll);
-        node.appendChild(icon);
-
-        var ring = document.createElement('a-ring');
-        ring.classList.add('clickable');
-        ring.setAttribute('radius-inner', '0.24');
-        ring.setAttribute('radius-outer', '0.272');
-        ring.setAttribute('material', 'shader: flat; color: #ffffff; transparent: true; opacity: 0.9; side: double');
-        ring.setAttribute('rotation', '-90 0 ' + roll);
-        node.appendChild(ring);
-
-        var text = document.createElement('a-text');
-        text.setAttribute(
-          'value',
-          'Go ' + displayName(link.to).toUpperCase()
-        );
-        text.setAttribute('position', '0 0.42 0');
-        text.setAttribute('align', 'center');
-        text.setAttribute('color', '#ffffff');
-        text.setAttribute('width', '2.3');
-        text.setAttribute('letter-spacing', '2');
-        // Label faces camera for readability
-        text.setAttribute('look-at', '[camera]');
-        node.appendChild(text);
-
-        function handlePick() {
-          if (!switchLocked) goToPoint(link.to);
+      function closeOtherDropdown(except) {
+        if (except !== 'point' && pointDropdownPanel && pointDropdownBtn) {
+          pointDropdownPanel.classList.remove('open');
+          pointDropdownBtn.setAttribute('aria-expanded', 'false');
         }
-        node.addEventListener('click', handlePick);
-        icon.addEventListener('click', handlePick);
-        ring.addEventListener('click', handlePick);
-        return node;
+        if (except !== 'work' && workDropdownPanel && workDropdownBtn) {
+          workDropdownPanel.classList.remove('open');
+          workDropdownBtn.setAttribute('aria-expanded', 'false');
+        }
+      }
+
+      function updateTourChrome() {
+        var labelEl = document.getElementById('point-dropdown-label');
+        if (labelEl) {
+          labelEl.textContent = formatPointLabel(currentPoint);
+        }
+        if (pointDropdownBtn) {
+          pointDropdownBtn.setAttribute(
+            'aria-label',
+            'Current point ' + formatPointLabel(currentPoint) + ', open point menu'
+          );
+        }
+        if (pointDropdownPanel) {
+          var opts = pointDropdownPanel.querySelectorAll('[role="option"]');
+          for (var i = 0; i < opts.length; i++) {
+            opts[i].classList.toggle('is-current', POINT_ORDER[i] === currentPoint);
+          }
+        }
+      }
+
+      function setPointDropdownOpen(open) {
+        if (!pointDropdownPanel || !pointDropdownBtn) return;
+        pointDropdownPanel.classList.toggle('open', open);
+        pointDropdownBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) closeOtherDropdown('point');
       }
 
       function getAdjacentPoint(step) {
@@ -692,6 +538,33 @@
         if (!workDropdownPanel || !workDropdownBtn) return;
         workDropdownPanel.classList.toggle('open', open);
         workDropdownBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) closeOtherDropdown('work');
+      }
+
+      function initPointDropdown() {
+        if (!pointDropdownPanel || !pointDropdownBtn || !pointDropdownWrap) return;
+        pointDropdownPanel.innerHTML = '';
+        for (var pi = 0; pi < POINT_ORDER.length; pi++) {
+          (function (pid) {
+            var opt = document.createElement('button');
+            opt.type = 'button';
+            opt.className = 'point-dropdown-opt';
+            opt.setAttribute('role', 'option');
+            opt.textContent = formatPointLabel(pid);
+            opt.addEventListener('click', function () {
+              setPointDropdownOpen(false);
+              if (!switchLocked) goToPoint(pid);
+            });
+            pointDropdownPanel.appendChild(opt);
+          })(POINT_ORDER[pi]);
+        }
+        pointDropdownBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          setPointDropdownOpen(!pointDropdownPanel.classList.contains('open'));
+        });
+        pointDropdownWrap.addEventListener('click', function (e) {
+          e.stopPropagation();
+        });
       }
 
       function initWorkDropdown() {
@@ -715,24 +588,11 @@
           setWorkDropdownOpen(!workDropdownPanel.classList.contains('open'));
         });
         document.addEventListener('click', function () {
-          setWorkDropdownOpen(false);
+          closeOtherDropdown('');
         });
         workDropdownWrap.addEventListener('click', function (e) {
           e.stopPropagation();
         });
-      }
-
-      function renderCurrentPoint() {
-        sky.setAttribute('src', '#' + currentPoint);
-        hotspotLayer.innerHTML = '';
-        var links = TOUR_POINTS[currentPoint].links;
-        links.forEach(function (link) {
-          hotspotLayer.appendChild(createHotspot(link));
-        });
-        statusEl.textContent =
-          'Point ' + displayName(currentPoint).toUpperCase() + ' / 8';
-        updateMapUserMarker();
-        updateMapNavHighlight();
       }
 
       function goToPoint(pointId) {
@@ -741,7 +601,10 @@
         fadeEl.classList.add('active');
         setTimeout(function () {
           currentPoint = pointId;
-          renderCurrentPoint();
+          if (window.ExhibitionMarzipano && typeof ExhibitionMarzipano.switchToPoint === 'function') {
+            ExhibitionMarzipano.switchToPoint(currentPoint);
+          }
+          updateTourChrome();
           fadeEl.classList.remove('active');
           setTimeout(function () {
             switchLocked = false;
@@ -757,28 +620,6 @@
       }
       window.goToViewpoint = goToViewpoint;
 
-      function initMapNavigation() {
-        function bind(g) {
-          var vid = parseInt(g.getAttribute('data-view-id'), 10);
-          if (isNaN(vid)) return;
-          function onActivate(e) {
-            if (e) e.preventDefault();
-            goToViewpoint(vid);
-          }
-          g.addEventListener('click', onActivate);
-          g.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              onActivate(e);
-            }
-          });
-        }
-        for (var i = 1; i <= 8; i++) {
-          var el = document.getElementById('point-' + i);
-          if (el) bind(el);
-        }
-      }
-
       function setupArrowNavigation() {
         if (navPrevBtn) {
           navPrevBtn.addEventListener('click', function () {
@@ -792,131 +633,22 @@
         }
       }
 
-      /**
-       * A-Frame injects fullscreen / VR buttons with varying class names; move them left of the mini-map.
-       */
-      function positionAframeSceneUi() {
-        var scene = document.querySelector('a-scene');
-        if (!scene) return;
-        var mapW = getComputedStyle(document.body).getPropertyValue('--exhibition-map-w').trim();
-        if (!mapW) mapW = 'min(340px, 46vw)';
-        var rightPos = 'calc(20px + ' + mapW + ' + 14px)';
-        function applyCorner(el) {
-          if (!el) return;
-          el.style.setProperty('left', 'auto', 'important');
-          el.style.setProperty('right', rightPos, 'important');
-          el.style.setProperty('bottom', '22px', 'important');
-          el.style.setProperty('top', 'auto', 'important');
-          el.style.setProperty('margin', '0', 'important');
-        }
-        scene
-          .querySelectorAll(
-            '.a-fullscreen-button, .a-enter-vr-button, .a-enter-ar-button, [class*="fullscreen"], [class*="enter-vr"]'
-          )
-          .forEach(applyCorner);
-        scene.querySelectorAll('button').forEach(function (btn) {
-          var cls = btn.getAttribute('class') || '';
-          var t = (btn.getAttribute('title') || '').toLowerCase();
-          if (
-            cls.indexOf('fullscreen') !== -1 ||
-            cls.indexOf('enter-vr') !== -1 ||
-            cls.indexOf('enter-ar') !== -1 ||
-            t.indexOf('fullscreen') !== -1 ||
-            t.indexOf('enter vr') !== -1
-          ) {
-            applyCorner(btn);
-          }
-        });
-      }
-
-      function watchAframeSceneUi() {
-        var scene = document.querySelector('a-scene');
-        if (!scene || typeof MutationObserver === 'undefined') return;
-        var mo = new MutationObserver(function () {
-          positionAframeSceneUi();
-        });
-        mo.observe(scene, { childList: true, subtree: true });
-      }
-
-      function initPointerLock() {
-        var scene = document.querySelector('a-scene');
-        if (!scene) return;
-
-        var hintEl = document.getElementById('tour-hint');
-
-        function lock() {
-          try {
-            var canvas = scene.canvas;
-            if (!canvas || !canvas.requestPointerLock) return;
-            if (document.pointerLockElement === canvas) return;
-            canvas.requestPointerLock();
-          } catch (e) {}
-        }
-
-        function unlock() {
-          try {
-            if (document.exitPointerLock) document.exitPointerLock();
-          } catch (e) {}
-        }
-
-        function isLocked() {
-          try {
-            return !!scene.canvas && document.pointerLockElement === scene.canvas;
-          } catch (e) {}
-          return false;
-        }
-
-        // First interaction locks pointer (browser gesture requirement).
-        scene.addEventListener('click', lock);
-        scene.addEventListener('mousedown', lock);
-
-        // Ctrl toggles cursor + lock state.
-        window.addEventListener('keydown', function (e) {
-          if (e.key !== 'Control') return;
-          // Avoid repeat firing while holding the key.
-          if (e.repeat) return;
-          var locked = isLocked();
-          if (locked) {
-            unlock();
-            document.body.classList.add('show-cursor');
-          } else {
-            document.body.classList.remove('show-cursor');
-            lock();
-          }
-        });
-
-        // Keep cursor class/hint in sync with lock state.
-        try {
-          document.addEventListener('pointerlockchange', function () {
-            document.body.classList.add('exhibition-hide-cursor');
-            var locked = isLocked();
-            if (hintEl) {
-              hintEl.textContent = locked
-                ? 'Ctrl: show cursor / unlock'
-                : 'Ctrl: hide cursor / lock (click scene if needed)';
-            }
-          });
-        } catch (e) {}
-      }
-
       (function () {
-        var scene = document.querySelector('a-scene');
-        if (!scene) return;
         function boot() {
+          initPointDropdown();
           initWorkDropdown();
-          initPointerLock();
-          initArtworkShapes();
-          initExhibitionMap();
-          initMapNavigation();
+          if (window.ExhibitionMarzipano && typeof ExhibitionMarzipano.init === 'function') {
+            ExhibitionMarzipano.init({ onNavigateToPanorama: goToPoint });
+            ExhibitionMarzipano.switchToPoint(currentPoint);
+          }
           setupArrowNavigation();
-          renderCurrentPoint();
-          positionAframeSceneUi();
-          setTimeout(positionAframeSceneUi, 200);
-          setTimeout(positionAframeSceneUi, 600);
-          watchAframeSceneUi();
+          updateTourChrome();
         }
-        if (scene.hasLoaded) boot();
-        else scene.addEventListener('loaded', boot);
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', boot);
+        } else {
+          boot();
+        }
       })();
     </script>
   </body>

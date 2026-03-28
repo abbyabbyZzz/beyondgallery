@@ -6,7 +6,6 @@
     <meta name="theme-color" content="#050508" />
     <title>Work Detail · Gallery Beyond</title>
     <link rel="stylesheet" href="../css/styles.css" />
-    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
     <style>
       body.detail-page {
@@ -171,37 +170,60 @@
       }
       .work-picker__btn {
         width: 100%;
-        padding: 9px 16px;
+        padding: 12px 20px;
         border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        background: #000000;
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 10px;
-        letter-spacing: 1.5px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        background: rgba(5, 5, 8, 0.35);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        color: rgba(255, 255, 255, 0.92);
+        font-size: 11px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        font-family: inherit;
         cursor: pointer;
         text-align: left;
+        box-shadow: none;
       }
       @media (max-width: 768px) {
         .work-picker__btn {
-          padding: 10px 14px;
-          font-size: 10px;
+          padding: 12px 18px;
+          font-size: 11px;
         }
       }
       .work-picker__btn:hover {
-        border-color: rgba(255, 255, 255, 0.28);
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.6);
+      }
+      .work-picker__btn:focus-visible {
+        outline: 1px solid rgba(255, 255, 255, 0.35);
+        outline-offset: 2px;
       }
       .work-picker__panel {
-        display: none;
         position: absolute;
         right: 0;
         top: calc(100% + 8px);
         min-width: 220px;
         max-height: min(46vh, 360px);
         overflow-y: auto;
-        border-radius: 0;
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        background: #000000;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        background: rgba(5, 5, 8, 0.35);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: none;
         z-index: 20;
+      }
+      .work-picker__panel::-webkit-scrollbar {
+        width: 7px;
+      }
+      .work-picker__panel::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.14);
+        border-radius: 4px;
+      }
+      .work-picker__panel::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 4px;
       }
       @media (max-width: 768px) {
         .work-picker__panel {
@@ -211,20 +233,19 @@
           width: 100%;
         }
       }
-      .work-picker__panel.open {
-        display: block;
-      }
       .work-picker__panel button {
         display: block;
         width: 100%;
-        padding: 10px 14px;
+        padding: 11px 16px;
         border: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
         background: transparent;
-        color: rgba(255, 255, 255, 0.9);
+        color: rgba(255, 255, 255, 0.92);
         font-size: 12px;
         text-align: left;
         cursor: pointer;
+        letter-spacing: 1.2px;
+        font-family: inherit;
       }
       .work-picker__panel button:last-child {
         border-bottom: none;
@@ -311,13 +332,24 @@
         width: 100%;
         height: 100%;
       }
-      .detail-viewer-wrap a-scene {
+      /* HD panorama: Marzipano (same drag as exhibition) */
+      .work-pano-viewer {
         position: absolute;
         left: 0;
         top: 0;
         width: 100%;
         height: 100%;
+        overflow: hidden;
+        background: #000;
+      }
+      .work-pano-viewer canvas {
         display: block;
+        width: 100%;
+        height: 100%;
+        cursor: grab;
+      }
+      .work-pano-viewer:active canvas {
+        cursor: grabbing;
       }
       #viewer-glb {
         display: none;
@@ -480,7 +512,12 @@
               <button type="button" class="work-picker__btn" id="work-picker-btn" aria-expanded="false" aria-haspopup="listbox">
                 Select artwork ▾
               </button>
-              <div class="work-picker__panel" id="work-picker-panel" role="listbox" aria-label="Works list"></div>
+              <div
+                class="work-picker__panel ui-dropdown-panel"
+                id="work-picker-panel"
+                role="listbox"
+                aria-label="Works list"
+              ></div>
             </div>
           </div>
         </header>
@@ -490,25 +527,7 @@
             <span class="viewer-hint viewer-hint--tl" id="viewer-hint-tl">HD image</span>
             <span class="viewer-hint viewer-hint--tr" id="viewer-hint-tr">Drag to look around</span>
             <div id="viewer-panorama" class="viewer-layer">
-              <a-scene
-                id="viewer-scene"
-                embedded
-                vr-mode-ui="enabled: false"
-                loading-screen="enabled: false"
-                renderer="antialias: true"
-              >
-                <a-assets>
-                  <img id="art360" src="" crossorigin="anonymous" />
-                </a-assets>
-                <a-sky id="art-sky" src="#art360" rotation="0 -90 -30"></a-sky>
-                <a-entity
-                  id="detail-camera"
-                  camera
-                  look-controls="pointerLockEnabled: false"
-                  position="0 1.6 0"
-                  rotation="-14 0 0"
-                ></a-entity>
-              </a-scene>
+              <div id="work-pano-viewer" class="work-pano-viewer" aria-label="360 artwork view"></div>
             </div>
             <div id="viewer-glb" class="viewer-layer" aria-hidden="true">
               <model-viewer
@@ -540,6 +559,25 @@
     <button type="button" id="artwork-prev-btn" class="edge-nav left" aria-label="Previous work">&lt;</button>
     <button type="button" id="artwork-next-btn" class="edge-nav right" aria-label="Next work">&gt;</button>
 
+    <script>
+      window.bowser = window.bowser || { msie: false, version: '99' };
+      window.screenfull =
+        window.screenfull ||
+        {
+          enabled: false,
+          isFullscreen: false,
+          request: function () {},
+          exit: function () {},
+          toggle: function () {},
+          on: function () {}
+        };
+    </script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/marzipano/0.10.2/marzipano.min.js"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script src="../js/work-panorama-marzipano.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <script src="../js/starfield.js"></script>
     <script src="../js/bgm.js"></script>
@@ -822,6 +860,32 @@
           return SKY_ROTATION_DEFAULT;
         }
 
+        function degToRad(d) {
+          return (d * Math.PI) / 180;
+        }
+
+        /** Initial yaw/pitch for Marzipano — mapped from former A-Frame sky Y + camera pitch */
+        function getWorkPanoramaInitialView(workId) {
+          var skyStr = getSkyRotationForWork(workId);
+          var parts = String(skyStr)
+            .trim()
+            .split(/\s+/)
+            .map(function (x) {
+              return parseFloat(x);
+            })
+            .filter(function (x) {
+              return !isNaN(x);
+            });
+          var ry = parts.length > 1 ? parts[1] : -90;
+          var yaw = degToRad(ry) + degToRad(INITIAL_CAMERA_YAW);
+          var pitch = degToRad(-INITIAL_CAMERA_PITCH);
+          return {
+            yaw: yaw,
+            pitch: pitch,
+            fov: 1.3705396696948544
+          };
+        }
+
         function parseWorkIdFromLocation() {
           var search = window.location.search || '';
           var raw = null;
@@ -971,17 +1035,6 @@
           document.title = m.title + ' · Gallery Beyond';
         }
 
-        function resetViewerCamera() {
-          var cam = document.getElementById('detail-camera');
-          if (cam) {
-            cam.setAttribute('rotation', {
-              x: INITIAL_CAMERA_PITCH,
-              y: INITIAL_CAMERA_YAW,
-              z: 0
-            });
-          }
-        }
-
         function applyViewerHints(is3d) {
           var hintTr = document.getElementById('viewer-hint-tr');
           var hintTl = document.getElementById('viewer-hint-tl');
@@ -1116,13 +1169,10 @@
           } catch (e) {}
           var file = String(id).padStart(2, '0') + '.JPG';
           var src = FOCUSED_BASE + file;
-          var img = document.getElementById('art360');
-          var sky = document.getElementById('art-sky');
           var pickerBtn = document.getElementById('work-picker-btn');
           var pano = document.getElementById('viewer-panorama');
           var glbWrap = document.getElementById('viewer-glb');
           var mv = document.getElementById('model-viewer-glb');
-          var scene = document.getElementById('viewer-scene');
           var glbVariants = getGlbVariantsForWork(id);
           var isGlb = glbVariants.length > 0;
           var variantIdx = getModelVariantIndex(id, glbVariants.length);
@@ -1136,6 +1186,9 @@
 
           try {
             if (isGlb) {
+              if (window.WorkPanoramaMarzipano && typeof WorkPanoramaMarzipano.destroy === 'function') {
+                WorkPanoramaMarzipano.destroy();
+              }
               updateModelSwitchUI(glbVariants.length > 1);
               if (pano) pano.style.display = 'none';
               if (glbWrap) {
@@ -1182,16 +1235,10 @@
                 glbWrap.style.display = 'none';
                 glbWrap.setAttribute('aria-hidden', 'true');
               }
-              if (img) img.setAttribute('src', src);
-              if (sky) {
-                sky.setAttribute('src', src);
-                sky.setAttribute('rotation', getSkyRotationForWork(id));
+              if (window.WorkPanoramaMarzipano && typeof WorkPanoramaMarzipano.init === 'function') {
+                WorkPanoramaMarzipano.init(src, getWorkPanoramaInitialView(id), 8192);
               }
-              resetViewerCamera();
               applyViewerHints(false);
-              if (scene && typeof scene.resize === 'function') {
-                scene.resize();
-              }
             }
           } catch (e) {
             applyViewerHints(false);
@@ -1250,7 +1297,7 @@
               opt.addEventListener('click', function () {
                 setPickerOpen(false);
                 if (wid === getWorkId()) return;
-                navigateWithTransition('index.html?id=' + wid);
+                switchWorkInPlace(wid);
               });
               panel.appendChild(opt);
             })(n);
@@ -1267,18 +1314,46 @@
           });
         }
 
+        /** 作品页内换作品：不整页刷新，BGM 同一 audio 连续播，避免卡顿 */
+        function switchWorkInPlace(newId) {
+          if (newId < WORK_MIN || newId > WORK_MAX) return;
+          if (newId === getWorkId()) return;
+          try {
+            var u = new URL(window.location.href);
+            u.searchParams.set('id', String(newId));
+            history.pushState({ galleryWorkNav: true }, '', u.toString());
+          } catch (e) {
+            try {
+              var base =
+                (window.location.pathname || '') +
+                '?id=' +
+                encodeURIComponent(String(newId));
+              history.pushState({ galleryWorkNav: true }, '', base);
+            } catch (e2) {}
+          }
+          try {
+            sessionStorage.setItem('gallery_last_work_id', String(newId));
+          } catch (e) {}
+          applyWork(newId);
+        }
+
         function goWork(delta) {
           var id = getWorkId();
           var next = id + delta;
           if (next < WORK_MIN) next = WORK_MAX;
           if (next > WORK_MAX) next = WORK_MIN;
-          navigateWithTransition('index.html?id=' + next);
+          switchWorkInPlace(next);
         }
 
         var id = getWorkId();
         syncWorkIdQueryParam(id);
         initWorkPicker();
         applyWork(id);
+
+        window.addEventListener('popstate', function () {
+          var pid = getWorkId();
+          applyWork(pid);
+        });
 
         var prevBtn = document.getElementById('artwork-prev-btn');
         var nextBtn = document.getElementById('artwork-next-btn');
@@ -1310,6 +1385,12 @@
           });
         }
         initModelSwitchControls();
+
+        window.addEventListener('resize', function () {
+          if (window.WorkPanoramaMarzipano && typeof WorkPanoramaMarzipano.updateSize === 'function') {
+            WorkPanoramaMarzipano.updateSize();
+          }
+        });
       })();
     </script>
   </body>

@@ -195,3 +195,38 @@ canvas { display: block; }
   }
 }
 
+/* Custom button + panel dropdowns (not native <select>) — smooth expand/collapse */
+.ui-dropdown-panel {
+  display: block;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(var(--dd-shift, -8px)) scale(0.98);
+  transform-origin: var(--dd-origin, top center);
+  transition:
+    opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0.34s;
+  will-change: transform, opacity;
+}
+.ui-dropdown-panel.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  transition:
+    opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s;
+}
+.ui-dropdown-panel--up {
+  --dd-shift: 10px;
+  --dd-origin: bottom center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-dropdown-panel {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+  }
+}
+
