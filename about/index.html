@@ -295,6 +295,15 @@
   </style>
 </head>
 <body>
+  <div class="rotate-overlay" id="rotate-overlay" aria-hidden="true">
+    <div class="rotate-card" role="dialog" aria-modal="true" aria-label="Desktop or tablet required">
+      <div class="rotate-label">Notice</div>
+      <div class="rotate-title">Please use a computer or tablet</div>
+      <p class="rotate-desc">
+        This experience is not available on phones. For the best results, open this site on a desktop or iPad.
+      </p>
+    </div>
+  </div>
   <audio
     id="bgm-audio"
     src="../bgm.mp3"
@@ -404,6 +413,7 @@
   <script src="../js/starfield.js"></script>
   <script src="../js/bgm.js"></script>
   <script src="../js/transition.js"></script>
+  <script src="../js/phone-block.js"></script>
   <script>
     (function () {
       var tabEx = document.getElementById('tab-exhibition');

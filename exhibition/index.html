@@ -295,10 +295,12 @@
   </head>
   <body>
     <div class="rotate-overlay" id="rotate-overlay" aria-hidden="true">
-      <div class="rotate-card" role="dialog" aria-modal="true" aria-label="Rotate device">
+      <div class="rotate-card" role="dialog" aria-modal="true" aria-label="Desktop or tablet required">
         <div class="rotate-label">Notice</div>
-        <div class="rotate-title">Please rotate your device</div>
-        <p class="rotate-desc">This experience is best viewed in landscape orientation.</p>
+        <div class="rotate-title">Please use a computer or tablet</div>
+        <p class="rotate-desc">
+          This experience is not available on phones. For the best results, open this site on a desktop or iPad.
+        </p>
       </div>
     </div>
     <!-- Full-screen viewer first so fixed UI (z-index) and later siblings stack above -->
@@ -362,33 +364,8 @@
     <script src="../js/exhibition-marzipano.js"></script>
     <script src="../js/bgm.js"></script>
     <script src="../js/transition.js"></script>
+    <script src="../js/phone-block.js"></script>
     <script>
-      (function () {
-        function shouldBlockPortrait() {
-          var isCoarse = false;
-          try {
-            isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-          } catch (e) {}
-          // treat small screens as "mobile" even if matchMedia isn't supported
-          var small = Math.min(window.innerWidth || 0, window.innerHeight || 0) <= 820;
-          var isMobileLike = isCoarse || small;
-          var isPortrait = (window.innerHeight || 0) > (window.innerWidth || 0);
-          return isMobileLike && isPortrait;
-        }
-
-        function updateRotateOverlay() {
-          var el = document.getElementById('rotate-overlay');
-          if (!el) return;
-          var show = shouldBlockPortrait();
-          el.classList.toggle('is-visible', show);
-          el.setAttribute('aria-hidden', show ? 'false' : 'true');
-        }
-
-        window.addEventListener('resize', updateRotateOverlay);
-        window.addEventListener('orientationchange', updateRotateOverlay);
-        updateRotateOverlay();
-      })();
-
       var TOUR_POINTS = {
         p1: {
           links: [
