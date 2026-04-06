@@ -6,8 +6,15 @@
   'use strict';
 
   var viewer = null;
+  var documentDragFixTeardown = null;
 
   function destroy() {
+    if (typeof documentDragFixTeardown === 'function') {
+      try {
+        documentDragFixTeardown();
+      } catch (e) {}
+      documentDragFixTeardown = null;
+    }
     if (viewer && typeof viewer.destroy === 'function') {
       try {
         viewer.destroy();
@@ -43,6 +50,13 @@
       }
     };
     viewer = new Marzipano.Viewer(panoEl, viewerOpts);
+    if (typeof window.installMarzipanoDocumentMouseDrag === 'function') {
+      try {
+        documentDragFixTeardown = window.installMarzipanoDocumentMouseDrag(viewer);
+      } catch (e) {
+        documentDragFixTeardown = null;
+      }
+    }
 
     var source = Marzipano.ImageUrlSource.fromString(imageUrl);
     var geometry = new Marzipano.EquirectGeometry([{ width: w }]);

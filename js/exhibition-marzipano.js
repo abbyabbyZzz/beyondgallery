@@ -239,6 +239,11 @@
     };
     viewer = new Marzipano.Viewer(panoEl, viewerOpts);
     applyStableViewControls(viewer);
+    if (typeof window.installMarzipanoDocumentMouseDrag === 'function') {
+      try {
+        window.installMarzipanoDocumentMouseDrag(viewer);
+      } catch (e) {}
+    }
 
     sceneWrappers = data.scenes.map(function (sceneData) {
       return createSceneForData(Marzipano, viewer, sceneData, useCubeTiles);
