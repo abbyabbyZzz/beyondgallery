@@ -7,6 +7,7 @@
 
   var isActive = false;
   var currentView = null;
+  var initialPitch = 0;
   var baseBeta = null;
   var baseGamma = null;
   var hintEl = null;
@@ -72,15 +73,15 @@
     if (orientation === 90) {
       // Landscape: home button on the right
       yaw = -toRad(dBeta) * SENSITIVITY;
-      pitch = toRad(dGamma) * SENSITIVITY;
+      pitch = -toRad(dGamma) * SENSITIVITY + initialPitch;
     } else if (orientation === -90 || orientation === 270) {
       // Landscape: home button on the left
       yaw = toRad(dBeta) * SENSITIVITY;
-      pitch = -toRad(dGamma) * SENSITIVITY;
+      pitch = toRad(dGamma) * SENSITIVITY + initialPitch;
     } else {
       // Portrait (fallback)
       yaw = -toRad(dGamma) * SENSITIVITY;
-      pitch = -toRad(dBeta) * SENSITIVITY;
+      pitch = -toRad(dBeta) * SENSITIVITY + initialPitch;
     }
 
     pitch = clamp(pitch, -Math.PI / 2.5, Math.PI / 2.5);
@@ -123,6 +124,17 @@
     if (!view) return;
     currentView = view;
 
+    // Preserve the scene's initial pitch so neutral hold matches the intended view
+    try {
+      initialPitch = typeof view.pitch === 'function' ? view.pitch() : 0;
+    } catch (e) {
+      initialPitch = 0;
+    }
+
+    // Reset calibration on every attach (scene switch)
+    baseBeta = null;
+    baseGamma = null;
+
     var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     if (!isTouch) return;
 
@@ -137,6 +149,7 @@
     window.removeEventListener('deviceorientation', onDeviceOrientation);
     isActive = false;
     currentView = null;
+    initialPitch = 0;
     baseBeta = null;
     baseGamma = null;
     hideTapHint();
