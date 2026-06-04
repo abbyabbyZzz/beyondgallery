@@ -1,37 +1,21 @@
 /**
- * Shows #rotate-overlay on phone-sized viewports so the site is used on tablet/desktop only.
- * Threshold: shorter viewport edge &lt; 768px (typical phone); iPad short edge is ≥768px.
- * Narrow desktop windows with mouse + hover are still allowed.
+ * Phone block is disabled — the site is now fully responsive on mobile.
+ * This file is kept for compatibility but no longer blocks any viewport.
  */
 ;(function () {
   'use strict';
 
-  function isPhoneViewport() {
-    var w = window.innerWidth || 0;
-    var h = window.innerHeight || 0;
-    var min = Math.min(w, h);
-    if (min >= 768) return false;
-    try {
-      if (window.matchMedia('(pointer: fine)').matches && window.matchMedia('(hover: hover)').matches) {
-        return false;
-      }
-    } catch (e) {}
-    return true;
-  }
-
-  function updateRotateOverlay() {
+  function hideRotateOverlay() {
     var el = document.getElementById('rotate-overlay');
     if (!el) return;
-    var show = isPhoneViewport();
-    el.classList.toggle('is-visible', show);
-    el.setAttribute('aria-hidden', show ? 'false' : 'true');
+    el.classList.remove('is-visible');
+    el.setAttribute('aria-hidden', 'true');
+    el.style.display = 'none';
   }
 
-  window.addEventListener('resize', updateRotateOverlay);
-  window.addEventListener('orientationchange', updateRotateOverlay);
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', updateRotateOverlay);
+    document.addEventListener('DOMContentLoaded', hideRotateOverlay);
   } else {
-    updateRotateOverlay();
+    hideRotateOverlay();
   }
 })();

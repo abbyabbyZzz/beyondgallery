@@ -173,6 +173,12 @@ canvas { display: block; }
   opacity: 1;
 }
 
+/* ===== Disable phone block overlay globally ===== */
+.rotate-overlay,
+#rotate-overlay {
+  display: none !important;
+}
+
 /* ===== Responsive tweaks: tablet / mobile ===== */
 @media (max-width: 1024px) {
   .bgm-toggle {

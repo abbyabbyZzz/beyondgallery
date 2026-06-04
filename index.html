@@ -49,6 +49,7 @@
       inset: 0;
       z-index: 5;
       cursor: default;
+      touch-action: none;
     }
 
     #home-hint {
@@ -344,6 +345,7 @@
       var hoverAnim = new Array(PLANETS.length).fill(0);
       var time = 0;
       var fadeIn = 0;
+      var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
       function lerp(a, b, t) { return a + (b - a) * t; }
 
@@ -358,12 +360,30 @@
       resize();
       window.addEventListener('resize', resize);
 
+      function updatePointer(x, y) {
+        mouse.rawX = x;
+        mouse.rawY = y;
+        mouse.x = (x / window.innerWidth - 0.5) * 2;
+        mouse.y = (y / window.innerHeight - 0.5) * 2;
+      }
+
       document.addEventListener('mousemove', function (e) {
-        mouse.rawX = e.clientX;
-        mouse.rawY = e.clientY;
-        mouse.x = (e.clientX / window.innerWidth - 0.5) * 2;
-        mouse.y = (e.clientY / window.innerHeight - 0.5) * 2;
+        updatePointer(e.clientX, e.clientY);
       });
+
+      canvas.addEventListener('touchstart', function (e) {
+        if (e.touches.length === 1) {
+          var t = e.touches[0];
+          updatePointer(t.clientX, t.clientY);
+        }
+      }, { passive: true });
+
+      canvas.addEventListener('touchmove', function (e) {
+        if (e.touches.length === 1) {
+          var t = e.touches[0];
+          updatePointer(t.clientX, t.clientY);
+        }
+      }, { passive: true });
 
       canvas.addEventListener('click', function () {
         if (hoveredIdx >= 0) {
@@ -373,11 +393,11 @@
 
       function getSizes() {
         var minDim = Math.min(window.innerWidth, window.innerHeight);
-        // Larger, more spacious 3-up layout
-        var mainR = minDim * 0.152; // center (Exhibition)
-        var secR = minDim * 0.112; // sides (same size)
-        // keep enough spacing so circles never overlap on narrow screens
-        var minGap = 34;
+        var isNarrow = minDim < 400;
+        // Scale down a bit on very narrow screens so planets stay on-canvas
+        var mainR = minDim * (isNarrow ? 0.13 : 0.152);
+        var secR = minDim * (isNarrow ? 0.095 : 0.112);
+        var minGap = isNarrow ? 22 : 34;
         var orbitDist = Math.max(mainR + secR + minGap, mainR * 2.75);
         return {
           mainR: mainR,
@@ -573,10 +593,11 @@
           ctx.letterSpacing = lerp(3, 5, ht) + 'px';
           ctx.fillText(pl.label.toUpperCase(), pos.x, labelY);
 
-          if (ht > 0.05) {
+          if (ht > 0.05 || isTouch) {
+            var subAlpha = isTouch ? lerp(0.35, 0.65, ht) : (fadeIn * ht * 0.5);
             ctx.font = '300 10px "Segoe UI", system-ui, sans-serif';
             ctx.letterSpacing = '2px';
-            ctx.fillStyle = 'rgba(255,255,255,' + fadeIn * ht * 0.5 + ')';
+            ctx.fillStyle = 'rgba(255,255,255,' + subAlpha + ')';
             ctx.fillText(pl.subtitle, pos.x, labelY + 18);
           }
           ctx.restore();
@@ -587,7 +608,8 @@
 
         // Hint text
         if (newHovered >= 0) {
-          hintText.textContent = 'Click to travel to ' + PLANETS[newHovered].label;
+          var actionWord = isTouch ? 'Tap' : 'Click';
+          hintText.textContent = actionWord + ' to travel to ' + PLANETS[newHovered].label;
           hintText.style.color = 'rgba(255,255,255,0.5)';
         } else {
           hintText.textContent = 'Select a destination';
