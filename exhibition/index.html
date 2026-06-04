@@ -705,10 +705,9 @@
           setupArrowNavigation();
           updateTourChrome();
 
-          var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
           var tourHint = document.getElementById('tour-hint');
-          if (isTouch && tourHint) {
-            tourHint.textContent = 'Tilt your phone to look around';
+          if (tourHint) {
+            tourHint.style.display = 'none';
           }
         }
         if (document.readyState === 'loading') {
