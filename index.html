@@ -392,13 +392,29 @@
       });
 
       function getSizes() {
-        var minDim = Math.min(window.innerWidth, window.innerHeight);
+        var w = window.innerWidth;
+        var h = window.innerHeight;
+        var minDim = Math.min(w, h);
         var isNarrow = minDim < 400;
-        // Scale down a bit on very narrow screens so planets stay on-canvas
-        var mainR = minDim * (isNarrow ? 0.115 : 0.152);
-        var secR = minDim * (isNarrow ? 0.085 : 0.112);
-        var minGap = isNarrow ? 44 : 34;
-        var orbitDist = Math.max(mainR + secR + minGap, mainR * 3.0);
+
+        if (isNarrow) {
+          // Mobile: three planets occupy ~80% of screen width
+          var mainR = minDim * 0.15;
+          var secR = minDim * 0.11;
+          var totalSpan = w * 0.80;
+          var orbitDist = (totalSpan - 2 * secR) / 2;
+          return {
+            mainR: mainR,
+            secR: secR,
+            orbitDist: orbitDist
+          };
+        }
+
+        // Desktop
+        var mainR = minDim * 0.152;
+        var secR = minDim * 0.112;
+        var minGap = 34;
+        var orbitDist = Math.max(mainR + secR + minGap, mainR * 2.75);
         return {
           mainR: mainR,
           secR: secR,
