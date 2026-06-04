@@ -279,6 +279,11 @@
         if (firstScene && firstScene.view) {
           window.DeviceOrientationControl.attach(firstScene.view);
         }
+        // Disable Marzipano touch drag so hotspots remain clickable
+        try {
+          var cm = viewer._controlMethods;
+          if (cm && cm.touchView) cm.touchView.enabled = false;
+        } catch (e) {}
       }
     }
   }

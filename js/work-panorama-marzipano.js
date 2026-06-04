@@ -79,6 +79,11 @@
       var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       if (isTouch) {
         window.DeviceOrientationControl.attach(view);
+        // Disable Marzipano touch drag so hotspots remain clickable
+        try {
+          var cm = viewer._controlMethods;
+          if (cm && cm.touchView) cm.touchView.enabled = false;
+        } catch (e) {}
       }
     }
 

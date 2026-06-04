@@ -9,8 +9,8 @@
   var currentView = null;
   var baseBeta = null;
   var baseGamma = null;
-  var blockerEl = null;
   var hintEl = null;
+  var SENSITIVITY = 2.2;
 
   function toRad(deg) {
     return deg * Math.PI / 180;
@@ -25,33 +25,6 @@
       return window.orientation || (screen.orientation && screen.orientation.angle) || 0;
     } catch (e) {
       return 0;
-    }
-  }
-
-  function addDragBlocker() {
-    if (blockerEl) return;
-    var viewerEl = document.getElementById('marzipano-viewer') || document.getElementById('work-pano-viewer');
-    if (!viewerEl) return;
-    blockerEl = document.createElement('div');
-    blockerEl.id = 'mz-drag-blocker';
-    blockerEl.style.cssText =
-      'position:absolute;inset:0;z-index:10;touch-action:none;pointer-events:auto;cursor:default;';
-    blockerEl.addEventListener('touchstart', function (e) {
-      e.stopPropagation();
-    }, { passive: false });
-    blockerEl.addEventListener('touchmove', function (e) {
-      e.stopPropagation();
-    }, { passive: false });
-    blockerEl.addEventListener('touchend', function (e) {
-      e.stopPropagation();
-    }, { passive: false });
-    viewerEl.appendChild(blockerEl);
-  }
-
-  function removeDragBlocker() {
-    if (blockerEl) {
-      blockerEl.remove();
-      blockerEl = null;
     }
   }
 
@@ -94,21 +67,20 @@
     var dGamma = e.gamma - baseGamma;
 
     var orientation = getScreenOrientation();
-    var sensitivity = 1.5;
     var yaw, pitch;
 
     if (orientation === 90) {
       // Landscape: home button on the right
-      yaw = -toRad(dBeta) * sensitivity;
-      pitch = toRad(dGamma) * sensitivity;
+      yaw = -toRad(dBeta) * SENSITIVITY;
+      pitch = toRad(dGamma) * SENSITIVITY;
     } else if (orientation === -90 || orientation === 270) {
       // Landscape: home button on the left
-      yaw = toRad(dBeta) * sensitivity;
-      pitch = -toRad(dGamma) * sensitivity;
+      yaw = toRad(dBeta) * SENSITIVITY;
+      pitch = -toRad(dGamma) * SENSITIVITY;
     } else {
       // Portrait (fallback)
-      yaw = -toRad(dGamma) * sensitivity;
-      pitch = -toRad(dBeta) * sensitivity;
+      yaw = -toRad(dGamma) * SENSITIVITY;
+      pitch = -toRad(dBeta) * SENSITIVITY;
     }
 
     pitch = clamp(pitch, -Math.PI / 2.5, Math.PI / 2.5);
@@ -141,7 +113,6 @@
       if (granted) {
         window.addEventListener('deviceorientation', onDeviceOrientation);
         isActive = true;
-        addDragBlocker();
         hideTapHint();
       }
       return granted;
@@ -168,7 +139,6 @@
     currentView = null;
     baseBeta = null;
     baseGamma = null;
-    removeDragBlocker();
     hideTapHint();
   }
 
