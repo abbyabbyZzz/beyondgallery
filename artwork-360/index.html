@@ -294,6 +294,51 @@
           min-height: min(56vh, 520px);
         }
       }
+
+      @media (orientation: portrait) and (max-width: 768px) {
+        #detail-root {
+          padding: 64px 16px 80px;
+        }
+        .detail-card {
+          width: calc(100vw - 16px);
+          border-radius: 14px;
+        }
+        .detail-card__head {
+          padding: 14px 14px 12px;
+        }
+        .detail-card__head h2 {
+          font-size: 1rem;
+        }
+        .detail-card__head-actions {
+          width: 100%;
+          justify-content: space-between;
+        }
+        .detail-viewer-wrap {
+          aspect-ratio: 4 / 3;
+          min-height: 240px;
+        }
+        .detail-info-wrap {
+          padding: 16px 16px;
+        }
+        .detail-info-card h1 {
+          font-size: 1.1rem;
+        }
+        .detail-info-card .art-line {
+          font-size: 12px;
+        }
+        .detail-info-card .art-desc {
+          font-size: 13px;
+          line-height: 1.7;
+        }
+        .viewer-hint--tl,
+        .viewer-hint--tr {
+          font-size: 9px;
+        }
+        .work-picker__btn {
+          font-size: 10px;
+          padding: 10px 14px;
+        }
+      }
       .viewer-hint {
         position: absolute;
         z-index: 5;
@@ -471,14 +516,35 @@
         right: 14px;
       }
 
+      @media (max-width: 768px) {
+        .edge-nav {
+          top: auto;
+          bottom: 14px;
+          transform: none;
+          width: calc(50% - 20px);
+          height: 48px;
+          border-radius: 12px;
+          font-size: 14px;
+          letter-spacing: 2px;
+          text-transform: uppercase;
+        }
+        .edge-nav.left {
+          left: 14px;
+        }
+        .edge-nav.right {
+          right: 14px;
+        }
+      }
+
       @media (max-width: 360px) {
         .edge-nav {
-          width: 44px;
+          width: calc(50% - 16px);
           height: 44px;
-          font-size: 18px;
+          font-size: 12px;
+          bottom: 12px;
         }
-        .edge-nav.left { left: 8px; }
-        .edge-nav.right { right: 8px; }
+        .edge-nav.left { left: 10px; }
+        .edge-nav.right { right: 10px; }
       }
 
       /* Touch-friendly active states */
