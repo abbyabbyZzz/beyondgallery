@@ -270,6 +270,17 @@
       setTimeout(handleResize, 300);
       setTimeout(handleResize, 600);
     });
+
+    // Enable gyroscope on mobile
+    if (typeof window.DeviceOrientationControl === 'object' && window.DeviceOrientationControl.isSupported()) {
+      var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      if (isTouch) {
+        var firstScene = sceneWrappers[0];
+        if (firstScene && firstScene.view) {
+          window.DeviceOrientationControl.attach(firstScene.view);
+        }
+      }
+    }
   }
 
   function switchToPoint(pointId) {
@@ -277,6 +288,9 @@
     if (!w || !viewer) return;
     w.view.setParameters(w.data.initialViewParameters);
     w.scene.switchTo();
+    if (typeof window.DeviceOrientationControl === 'object') {
+      window.DeviceOrientationControl.attach(w.view);
+    }
   }
 
   window.ExhibitionMarzipano = {

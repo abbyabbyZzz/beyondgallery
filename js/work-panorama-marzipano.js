@@ -74,6 +74,14 @@
     });
     scene.switchTo();
 
+    // Enable gyroscope on mobile
+    if (typeof window.DeviceOrientationControl === 'object' && window.DeviceOrientationControl.isSupported()) {
+      var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      if (isTouch) {
+        window.DeviceOrientationControl.attach(view);
+      }
+    }
+
     window.requestAnimationFrame(function () {
       if (viewer && typeof viewer.updateSize === 'function') {
         try {
