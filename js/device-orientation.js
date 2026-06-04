@@ -27,6 +27,14 @@
     return Math.max(min, Math.min(max, v));
   }
 
+  function getScreenOrientation() {
+    try {
+      return window.orientation || (screen.orientation && screen.orientation.angle) || 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
   function showTapHint() {
     if (hintEl) return;
     var viewerEl = document.getElementById('marzipano-viewer') || document.getElementById('work-pano-viewer');
@@ -79,10 +87,25 @@
     var dBeta = e.beta - baseBeta;
     var dGamma = e.gamma - baseGamma;
 
-    // Modern browsers (iOS 13+, Chrome) use screen-relative coordinates for
-    // deviceorientation — beta is always screen pitch, gamma is always screen yaw.
-    var yaw = -toRad(dGamma) * SENSITIVITY;
-    var pitch = toRad(dBeta) * SENSITIVITY + initialPitch;
+    var orientation = getScreenOrientation();
+    var yaw, pitch;
+
+    // Device coordinates are device-frame relative.
+    // In landscape the device-frame axes are rotated relative to the screen,
+    // so beta/gamma swap roles compared to portrait.
+    if (orientation === 90) {
+      // Landscape: home button on the left (device rotated 90° CW)
+      yaw = -toRad(dBeta) * SENSITIVITY;
+      pitch = -toRad(dGamma) * SENSITIVITY + initialPitch;
+    } else if (orientation === -90 || orientation === 270) {
+      // Landscape: home button on the right (device rotated 90° CCW)
+      yaw = toRad(dBeta) * SENSITIVITY;
+      pitch = toRad(dGamma) * SENSITIVITY + initialPitch;
+    } else {
+      // Portrait: beta = pitch, gamma = yaw
+      yaw = -toRad(dGamma) * SENSITIVITY;
+      pitch = toRad(dBeta) * SENSITIVITY + initialPitch;
+    }
 
     pitch = clamp(pitch, -Math.PI / 2.5, Math.PI / 2.5);
 
@@ -124,7 +147,7 @@
     if (!view) return;
     currentView = view;
 
-    // Preserve the scene's initial pitch so the first ~200ms always shows the painting
+    // Preserve the scene's initial pitch so the first ~100ms always shows the painting
     try {
       initialPitch = typeof view.pitch === 'function' ? view.pitch() : 0;
     } catch (e) {
