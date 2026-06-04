@@ -13,14 +13,18 @@
     renderer.domElement.style.zIndex = '0';
     document.body.insertBefore(renderer.domElement, document.body.firstChild);
 
-    var count = 8500;
+    var isMobile = window.innerWidth <= 768;
+    var count = isMobile ? 3500 : 8500;
+    var spread = isMobile ? 28 : 20;
+    var starSize = isMobile ? 0.012 : 0.015;
+
     var geo = new THREE.BufferGeometry();
     var pos = new Float32Array(count * 3);
-    for (var i = 0; i < count * 3; i++) pos[i] = (Math.random() - 0.5) * 20;
+    for (var i = 0; i < count * 3; i++) pos[i] = (Math.random() - 0.5) * spread;
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
 
     var mat = new THREE.PointsMaterial({
-      size: 0.015,
+      size: starSize,
       color: 0xffffff,
       transparent: true,
       opacity: 0.7,
