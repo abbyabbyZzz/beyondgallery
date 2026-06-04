@@ -256,6 +256,20 @@
       }
     });
 
+    // Mobile landscape: ensure correct sizing after orientation changes
+    function handleResize() {
+      if (!viewer) return;
+      try {
+        viewer.updateSize();
+      } catch (e) {}
+    }
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', function () {
+      // iOS Safari needs delays for viewport to settle
+      setTimeout(handleResize, 100);
+      setTimeout(handleResize, 300);
+      setTimeout(handleResize, 600);
+    });
   }
 
   function switchToPoint(pointId) {
