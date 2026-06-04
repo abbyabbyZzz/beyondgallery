@@ -16,9 +16,15 @@
 
   // Smooth calibration: average the first N samples so the view
   // stays at the scene's initial angle briefly regardless of phone angle
-  var CALIBRATION_SAMPLES = 6;
+  var CALIBRATION_SAMPLES = 12;
   var calibrationBuffer = [];
   var isCalibrated = false;
+
+  // Dead zone: after calibration, keep the view locked at the initial angle
+  // until the user actively rotates the phone by more than this threshold.
+  // This guarantees the painting is visible first, then motion kicks in.
+  var MOTION_DEADZONE_DEG = 3;
+  var hasLeftDeadZone = false;
 
   function toRad(deg) {
     return deg * Math.PI / 180;
@@ -87,6 +93,15 @@
 
     var dBeta = e.beta - baseBeta;
     var dGamma = e.gamma - baseGamma;
+
+    // Dead zone: keep showing the painting until the user actively rotates the phone
+    if (!hasLeftDeadZone) {
+      if (Math.abs(dBeta) > MOTION_DEADZONE_DEG || Math.abs(dGamma) > MOTION_DEADZONE_DEG) {
+        hasLeftDeadZone = true;
+      } else {
+        return;
+      }
+    }
 
     var orientation = getScreenOrientation();
     var yaw, pitch;
@@ -158,6 +173,7 @@
     // Reset calibration on every attach (scene switch)
     calibrationBuffer = [];
     isCalibrated = false;
+    hasLeftDeadZone = false;
     baseBeta = null;
     baseGamma = null;
 
@@ -178,6 +194,7 @@
     initialPitch = 0;
     calibrationBuffer = [];
     isCalibrated = false;
+    hasLeftDeadZone = false;
     baseBeta = null;
     baseGamma = null;
     hideTapHint();
