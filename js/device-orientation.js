@@ -20,6 +20,14 @@
     return Math.max(min, Math.min(max, v));
   }
 
+  function getScreenOrientation() {
+    try {
+      return window.orientation || (screen.orientation && screen.orientation.angle) || 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
   function addDragBlocker() {
     if (blockerEl) return;
     var viewerEl = document.getElementById('marzipano-viewer') || document.getElementById('work-pano-viewer');
@@ -28,7 +36,6 @@
     blockerEl.id = 'mz-drag-blocker';
     blockerEl.style.cssText =
       'position:absolute;inset:0;z-index:10;touch-action:none;pointer-events:auto;cursor:default;';
-    // Swallow all pointer/touch events so Marzipano drag never fires
     blockerEl.addEventListener('touchstart', function (e) {
       e.stopPropagation();
     }, { passive: false });
@@ -86,8 +93,23 @@
     var dBeta = e.beta - baseBeta;
     var dGamma = e.gamma - baseGamma;
 
-    var yaw = -toRad(dGamma) * 1.5;
-    var pitch = -toRad(dBeta) * 1.5;
+    var orientation = getScreenOrientation();
+    var sensitivity = 1.5;
+    var yaw, pitch;
+
+    if (orientation === 90) {
+      // Landscape: home button on the right
+      yaw = -toRad(dBeta) * sensitivity;
+      pitch = toRad(dGamma) * sensitivity;
+    } else if (orientation === -90 || orientation === 270) {
+      // Landscape: home button on the left
+      yaw = toRad(dBeta) * sensitivity;
+      pitch = -toRad(dGamma) * sensitivity;
+    } else {
+      // Portrait (fallback)
+      yaw = -toRad(dGamma) * sensitivity;
+      pitch = -toRad(dBeta) * sensitivity;
+    }
 
     pitch = clamp(pitch, -Math.PI / 2.5, Math.PI / 2.5);
 
