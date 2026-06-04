@@ -13,6 +13,12 @@
   var hintEl = null;
   var SENSITIVITY = 2.2;
 
+  // Smooth calibration: average the first N samples so the view
+  // stays at the scene's initial angle for ~200ms regardless of phone angle
+  var CALIBRATION_SAMPLES = 12;
+  var calibrationBuffer = [];
+  var isCalibrated = false;
+
   function toRad(deg) {
     return deg * Math.PI / 180;
   }
@@ -58,9 +64,23 @@
     if (!isActive || !currentView) return;
     if (e.beta === null || e.gamma === null) return;
 
-    if (baseBeta === null) {
-      baseBeta = e.beta;
-      baseGamma = e.gamma;
+    // Smooth calibration: collect first N samples before applying motion
+    if (!isCalibrated) {
+      calibrationBuffer.push({ beta: e.beta, gamma: e.gamma });
+      if (calibrationBuffer.length < CALIBRATION_SAMPLES) {
+        // During calibration the view stays locked to the scene's initial angle,
+        // so the screen always faces the painting regardless of phone angle
+        return;
+      }
+      var avgBeta = 0;
+      var avgGamma = 0;
+      for (var i = 0; i < calibrationBuffer.length; i++) {
+        avgBeta += calibrationBuffer[i].beta;
+        avgGamma += calibrationBuffer[i].gamma;
+      }
+      baseBeta = avgBeta / calibrationBuffer.length;
+      baseGamma = avgGamma / calibrationBuffer.length;
+      isCalibrated = true;
       return;
     }
 
@@ -124,7 +144,7 @@
     if (!view) return;
     currentView = view;
 
-    // Preserve the scene's initial pitch so neutral hold matches the intended view
+    // Preserve the scene's initial pitch so the first ~200ms always shows the painting
     try {
       initialPitch = typeof view.pitch === 'function' ? view.pitch() : 0;
     } catch (e) {
@@ -132,6 +152,8 @@
     }
 
     // Reset calibration on every attach (scene switch)
+    calibrationBuffer = [];
+    isCalibrated = false;
     baseBeta = null;
     baseGamma = null;
 
@@ -150,6 +172,8 @@
     isActive = false;
     currentView = null;
     initialPitch = 0;
+    calibrationBuffer = [];
+    isCalibrated = false;
     baseBeta = null;
     baseGamma = null;
     hideTapHint();
