@@ -14,8 +14,8 @@
   var SENSITIVITY = 2.2;
 
   // Smooth calibration: average the first N samples so the view
-  // stays at the scene's initial angle for ~200ms regardless of phone angle
-  var CALIBRATION_SAMPLES = 12;
+  // stays at the scene's initial angle briefly regardless of phone angle
+  var CALIBRATION_SAMPLES = 6;
   var calibrationBuffer = [];
   var isCalibrated = false;
 
@@ -25,14 +25,6 @@
 
   function clamp(v, min, max) {
     return Math.max(min, Math.min(max, v));
-  }
-
-  function getScreenOrientation() {
-    try {
-      return window.orientation || (screen.orientation && screen.orientation.angle) || 0;
-    } catch (e) {
-      return 0;
-    }
   }
 
   function showTapHint() {
@@ -87,22 +79,10 @@
     var dBeta = e.beta - baseBeta;
     var dGamma = e.gamma - baseGamma;
 
-    var orientation = getScreenOrientation();
-    var yaw, pitch;
-
-    if (orientation === 90) {
-      // Landscape: home button on the right
-      yaw = -toRad(dBeta) * SENSITIVITY;
-      pitch = -toRad(dGamma) * SENSITIVITY + initialPitch;
-    } else if (orientation === -90 || orientation === 270) {
-      // Landscape: home button on the left
-      yaw = toRad(dBeta) * SENSITIVITY;
-      pitch = toRad(dGamma) * SENSITIVITY + initialPitch;
-    } else {
-      // Portrait (fallback)
-      yaw = -toRad(dGamma) * SENSITIVITY;
-      pitch = -toRad(dBeta) * SENSITIVITY + initialPitch;
-    }
+    // Modern browsers (iOS 13+, Chrome) use screen-relative coordinates for
+    // deviceorientation — beta is always screen pitch, gamma is always screen yaw.
+    var yaw = -toRad(dGamma) * SENSITIVITY;
+    var pitch = toRad(dBeta) * SENSITIVITY + initialPitch;
 
     pitch = clamp(pitch, -Math.PI / 2.5, Math.PI / 2.5);
 
