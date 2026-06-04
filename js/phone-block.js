@@ -1,12 +1,19 @@
 /**
  * Blocks portrait orientation on phones/tablets with small viewports.
- * Shows rotate-overlay when the device is in portrait (height > width)
- * and the shorter edge is smaller than a typical tablet (768px).
+ * Only applies on the exhibition page; all other pages allow portrait.
  */
 ;(function () {
   'use strict';
 
+  function isExhibitionPage() {
+    var path = window.location.pathname || '';
+    return /\/exhibition(\/|$)/i.test(path);
+  }
+
   function shouldBlockPortrait() {
+    // Only block on exhibition page
+    if (!isExhibitionPage()) return false;
+
     var w = window.innerWidth || 0;
     var h = window.innerHeight || 0;
     var min = Math.min(w, h);
@@ -35,7 +42,6 @@
 
   window.addEventListener('resize', updateRotateOverlay);
   window.addEventListener('orientationchange', function () {
-    // Delay to let the browser settle into the new orientation
     setTimeout(updateRotateOverlay, 50);
     setTimeout(updateRotateOverlay, 200);
   });
