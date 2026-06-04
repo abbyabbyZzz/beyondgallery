@@ -11,8 +11,8 @@
   var baseBeta = null;
   var baseGamma = null;
   var hintEl = null;
-  var YAW_SENSITIVITY = 4.0;
-  var PITCH_SENSITIVITY = 2.8;
+  var YAW_SENSITIVITY = 5.5;
+  var PITCH_SENSITIVITY = 1.8;
 
   // Smooth calibration: average the first N samples so the view
   // stays at the scene's initial angle briefly regardless of phone angle
