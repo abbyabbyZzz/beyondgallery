@@ -339,6 +339,45 @@
           padding: 10px 14px;
         }
       }
+
+      /* 修复1：手机竖屏下避免 BGM 按钮与作品切换按钮重叠 */
+      @media (max-width: 768px) {
+        .bgm-toggle {
+          left: auto;
+          right: 14px;
+          transform: none;
+          bottom: 70px;
+        }
+      }
+
+      /* 修复2：手机横屏下确保 viewer 与 info 区域并排，artist statement 可见 */
+      @media (orientation: landscape) and (max-height: 500px) {
+        #detail-root {
+          padding-top: 56px;
+          padding-bottom: 16px;
+          justify-content: flex-start;
+        }
+        .detail-card__body {
+          grid-template-columns: 1fr 1fr;
+          min-height: 0;
+        }
+        .detail-viewer-wrap {
+          min-height: 0;
+          aspect-ratio: 2 / 1;
+        }
+        .detail-info-wrap {
+          border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
+          border-top: none !important;
+          min-height: 0;
+          overflow-y: auto;
+          padding: 14px 16px;
+        }
+        .detail-info-card .art-desc {
+          max-height: none;
+          overflow-y: auto;
+        }
+      }
+
       .viewer-hint {
         position: absolute;
         z-index: 5;

@@ -11,7 +11,8 @@
   var baseBeta = null;
   var baseGamma = null;
   var hintEl = null;
-  var SENSITIVITY = 2.8;
+  var YAW_SENSITIVITY = 4.0;
+  var PITCH_SENSITIVITY = 2.8;
 
   // Smooth calibration: average the first N samples so the view
   // stays at the scene's initial angle briefly regardless of phone angle
@@ -95,16 +96,16 @@
     // so beta/gamma swap roles compared to portrait.
     if (orientation === 90) {
       // Landscape: home button on the left (device rotated 90° CW)
-      yaw = -toRad(dBeta) * SENSITIVITY;
-      pitch = toRad(dGamma) * SENSITIVITY + initialPitch;
+      yaw = -toRad(dBeta) * YAW_SENSITIVITY;
+      pitch = -toRad(dGamma) * PITCH_SENSITIVITY + initialPitch;
     } else if (orientation === -90 || orientation === 270) {
       // Landscape: home button on the right (device rotated 90° CCW)
-      yaw = toRad(dBeta) * SENSITIVITY;
-      pitch = -toRad(dGamma) * SENSITIVITY + initialPitch;
+      yaw = toRad(dBeta) * YAW_SENSITIVITY;
+      pitch = toRad(dGamma) * PITCH_SENSITIVITY + initialPitch;
     } else {
       // Portrait: beta = pitch, gamma = yaw
-      yaw = -toRad(dGamma) * SENSITIVITY;
-      pitch = toRad(dBeta) * SENSITIVITY + initialPitch;
+      yaw = -toRad(dGamma) * YAW_SENSITIVITY;
+      pitch = -toRad(dBeta) * PITCH_SENSITIVITY + initialPitch;
     }
 
     pitch = clamp(pitch, -Math.PI / 2.5, Math.PI / 2.5);
