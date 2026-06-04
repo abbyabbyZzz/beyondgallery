@@ -395,10 +395,10 @@
         var minDim = Math.min(window.innerWidth, window.innerHeight);
         var isNarrow = minDim < 400;
         // Scale down a bit on very narrow screens so planets stay on-canvas
-        var mainR = minDim * (isNarrow ? 0.13 : 0.152);
-        var secR = minDim * (isNarrow ? 0.095 : 0.112);
-        var minGap = isNarrow ? 22 : 34;
-        var orbitDist = Math.max(mainR + secR + minGap, mainR * 2.75);
+        var mainR = minDim * (isNarrow ? 0.115 : 0.152);
+        var secR = minDim * (isNarrow ? 0.085 : 0.112);
+        var minGap = isNarrow ? 44 : 34;
+        var orbitDist = Math.max(mainR + secR + minGap, mainR * 3.0);
         return {
           mainR: mainR,
           secR: secR,
