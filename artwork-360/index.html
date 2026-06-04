@@ -557,7 +557,7 @@
         <div class="detail-card__body">
           <div class="detail-viewer-wrap" id="viewer-shell">
             <span class="viewer-hint viewer-hint--tl" id="viewer-hint-tl">HD image</span>
-            <span class="viewer-hint viewer-hint--tr" id="viewer-hint-tr">Drag to look around</span>
+            <span class="viewer-hint viewer-hint--tr" id="viewer-hint-tr">Tilt your phone to look around</span>
             <div id="viewer-panorama" class="viewer-layer">
               <div id="work-pano-viewer" class="work-pano-viewer" aria-label="360 artwork view"></div>
             </div>
@@ -1048,8 +1048,13 @@
         function applyViewerHints(is3d) {
           var hintTr = document.getElementById('viewer-hint-tr');
           var hintTl = document.getElementById('viewer-hint-tl');
+          var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
           if (hintTr) {
-            hintTr.textContent = is3d ? 'Drag to rotate · Scroll to zoom' : 'Drag to look around';
+            if (is3d) {
+              hintTr.textContent = isTouch ? 'Drag to rotate · Pinch to zoom' : 'Drag to rotate · Scroll to zoom';
+            } else {
+              hintTr.textContent = isTouch ? 'Tilt your phone to look around' : 'Drag to look around';
+            }
           }
           if (hintTl) {
             hintTl.textContent = is3d ? '3D model' : 'HD image';

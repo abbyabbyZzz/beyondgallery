@@ -155,7 +155,12 @@
       }
       @media (max-width: 768px) {
         .tour-hint {
-          display: none;
+          display: block;
+          top: auto;
+          bottom: 70px;
+          font-size: 10px;
+          letter-spacing: 1.5px;
+          padding: 8px 16px;
         }
         .point-dropdown-panel {
           grid-template-columns: repeat(4, 40px);
@@ -699,6 +704,12 @@
           }
           setupArrowNavigation();
           updateTourChrome();
+
+          var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+          var tourHint = document.getElementById('tour-hint');
+          if (isTouch && tourHint) {
+            tourHint.textContent = 'Tilt your phone to look around';
+          }
         }
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', boot);
