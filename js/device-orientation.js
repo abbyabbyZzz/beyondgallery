@@ -112,11 +112,11 @@
     if (orientation === 90) {
       // Landscape: home button on the left (device rotated 90° CW)
       yaw = -toRad(dBeta) * YAW_SENSITIVITY;
-      pitch = -toRad(dGamma) * PITCH_SENSITIVITY + initialPitch;
+      pitch = toRad(dGamma) * PITCH_SENSITIVITY + initialPitch;
     } else if (orientation === -90 || orientation === 270) {
       // Landscape: home button on the right (device rotated 90° CCW)
       yaw = toRad(dBeta) * YAW_SENSITIVITY;
-      pitch = toRad(dGamma) * PITCH_SENSITIVITY + initialPitch;
+      pitch = -toRad(dGamma) * PITCH_SENSITIVITY + initialPitch;
     } else {
       // Portrait: beta = pitch, gamma = yaw
       yaw = -toRad(dGamma) * YAW_SENSITIVITY;
