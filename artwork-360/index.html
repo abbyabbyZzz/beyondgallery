@@ -759,7 +759,7 @@
          * A-Frame: negative X pitch ≈ look up toward wall / artwork height.
          * Tune INITIAL_CAMERA_PITCH (e.g. −10 … −18) if needed.
          */
-        var INITIAL_CAMERA_PITCH = -14;
+        var INITIAL_CAMERA_PITCH = -30;
         var INITIAL_CAMERA_YAW = 0;
 
         var DEFAULT_META = {
@@ -1173,7 +1173,7 @@
             if (is3d) {
               hintTr.textContent = isTouch ? 'Drag to rotate · Pinch to zoom' : 'Drag to rotate · Scroll to zoom';
             } else {
-              hintTr.textContent = isTouch ? 'Tilt your phone to look around' : 'Drag to look around';
+              hintTr.textContent = isTouch ? 'Drag to look around · Pinch to zoom' : 'Drag to look around · Scroll to zoom';
             }
           }
           if (hintTl) {

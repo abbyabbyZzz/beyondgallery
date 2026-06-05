@@ -1,5 +1,5 @@
 /**
- * Single-scene Marzipano viewer for artwork-360 HD equirect (same drag logic as exhibition).
+ * Single-scene Marzipano viewer for artwork-360 HD equirect (drag + pinch zoom on mobile).
  * Depends: window.Marzipano, container element in DOM.
  */
 (function (window) {
@@ -25,6 +25,57 @@
     if (el) {
       el.innerHTML = '';
     }
+  }
+
+  /**
+   * Enable pinch-to-zoom by tracking two-finger distance and adjusting FOV.
+   * This does not interfere with Marzipano single-finger drag.
+   */
+  function enablePinchZoom(view, container) {
+    if (!container || !view) return;
+    var startDist = 0;
+    var startFov = 0;
+    var pinching = false;
+
+    function getDist(touches) {
+      var dx = touches[0].clientX - touches[1].clientX;
+      var dy = touches[0].clientY - touches[1].clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    container.addEventListener('touchstart', function (e) {
+      if (e.touches.length === 2) {
+        pinching = true;
+        startDist = getDist(e.touches);
+        try {
+          startFov = view.fov();
+        } catch (err) {
+          startFov = 1.3705396696948544;
+        }
+      }
+    }, { passive: true });
+
+    container.addEventListener('touchmove', function (e) {
+      if (pinching && e.touches.length === 2) {
+        var dist = getDist(e.touches);
+        if (startDist > 0) {
+          var scale = dist / startDist;
+          try {
+            var newFov = startFov / scale;
+            // Clamp to a reasonable range within Marzipano limiter bounds
+            if (newFov < 0.5) newFov = 0.5;
+            if (newFov > 2.5) newFov = 2.5;
+            view.setFov(newFov);
+          } catch (err) {}
+        }
+      }
+    }, { passive: true });
+
+    container.addEventListener('touchend', function (e) {
+      if (e.touches.length < 2) {
+        pinching = false;
+      }
+    }, { passive: true });
   }
 
   /**
@@ -74,17 +125,10 @@
     });
     scene.switchTo();
 
-    // Enable gyroscope on mobile
-    if (typeof window.DeviceOrientationControl === 'object' && window.DeviceOrientationControl.isSupported()) {
-      var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      if (isTouch) {
-        window.DeviceOrientationControl.attach(view);
-        // Disable Marzipano touch drag so hotspots remain clickable
-        try {
-          var cm = viewer._controlMethods;
-          if (cm && cm.touchView) cm.touchView.enabled = false;
-        } catch (e) {}
-      }
+    // Enable pinch-to-zoom on touch devices (drag is handled by Marzipano touchView)
+    var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (isTouch) {
+      enablePinchZoom(view, panoEl);
     }
 
     window.requestAnimationFrame(function () {
