@@ -156,3 +156,10 @@
   transform: scaleY(0.26);
   transform-origin: center center;
 }
+
+/* Hide panorama navigation hotspots on mobile — users rely on arrows + point dropdown instead */
+@media (max-width: 768px) {
+  .exhibition-mz-hotspot--nav {
+    display: none !important;
+  }
+}

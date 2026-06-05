@@ -8,11 +8,17 @@
   var isActive = false;
   var currentView = null;
   var initialPitch = 0;
+  var initialYaw = 0;
   var baseBeta = null;
   var baseGamma = null;
   var hintEl = null;
   var YAW_SENSITIVITY = 6.5;
   var PITCH_SENSITIVITY = 1.8;
+
+  // Exponential smoothing to filter hand tremor while keeping high sensitivity
+  var smoothYaw = 0;
+  var smoothPitch = 0;
+  var SMOOTHING = 0.15;
 
   // Smooth calibration: average the first N samples so the view
   // stays at the scene's initial angle briefly regardless of phone angle
@@ -104,30 +110,39 @@
     }
 
     var orientation = getScreenOrientation();
-    var yaw, pitch;
+    var rawYaw, rawPitch;
 
     // Device coordinates are device-frame relative.
     // In landscape the device-frame axes are rotated relative to the screen,
     // so beta/gamma swap roles compared to portrait.
     if (orientation === 90) {
       // Landscape: home button on the left (device rotated 90° CW)
-      yaw = -toRad(dBeta) * YAW_SENSITIVITY;
-      pitch = toRad(dGamma) * PITCH_SENSITIVITY + initialPitch;
+      rawYaw = -toRad(dBeta) * YAW_SENSITIVITY;
+      rawPitch = toRad(dGamma) * PITCH_SENSITIVITY;
     } else if (orientation === -90 || orientation === 270) {
       // Landscape: home button on the right (device rotated 90° CCW)
-      yaw = toRad(dBeta) * YAW_SENSITIVITY;
-      pitch = -toRad(dGamma) * PITCH_SENSITIVITY + initialPitch;
+      rawYaw = toRad(dBeta) * YAW_SENSITIVITY;
+      rawPitch = -toRad(dGamma) * PITCH_SENSITIVITY;
     } else {
       // Portrait: beta = pitch, gamma = yaw
-      yaw = -toRad(dGamma) * YAW_SENSITIVITY;
-      pitch = -toRad(dBeta) * PITCH_SENSITIVITY + initialPitch;
+      rawYaw = -toRad(dGamma) * YAW_SENSITIVITY;
+      rawPitch = -toRad(dBeta) * PITCH_SENSITIVITY;
     }
 
-    pitch = clamp(pitch, -Math.PI / 2.5, Math.PI / 2.5);
+    // Clamp relative pitch offset (not absolute pitch)
+    rawPitch = clamp(rawPitch, -Math.PI / 2.5, Math.PI / 2.5);
+
+    // Target = initial scene angle + gyroscope offset
+    var targetYaw = initialYaw + rawYaw;
+    var targetPitch = initialPitch + rawPitch;
+
+    // Exponential smoothing to kill hand tremor while preserving large intentional motion
+    smoothYaw += (targetYaw - smoothYaw) * SMOOTHING;
+    smoothPitch += (targetPitch - smoothPitch) * SMOOTHING;
 
     try {
-      currentView.setYaw(yaw);
-      currentView.setPitch(pitch);
+      currentView.setYaw(smoothYaw);
+      currentView.setPitch(smoothPitch);
     } catch (err) {}
   }
 
@@ -163,14 +178,18 @@
     if (!view) return;
     currentView = view;
 
-    // Preserve the scene's initial pitch so the first ~100ms always shows the painting
+    // Preserve the scene's initial angles so gyroscope motion is relative to the opening view
     try {
       initialPitch = typeof view.pitch === 'function' ? view.pitch() : 0;
+      initialYaw = typeof view.yaw === 'function' ? view.yaw() : 0;
     } catch (e) {
       initialPitch = 0;
+      initialYaw = 0;
     }
 
-    // Reset calibration on every attach (scene switch)
+    // Reset smoothing and calibration state on every attach (scene switch)
+    smoothYaw = initialYaw;
+    smoothPitch = initialPitch;
     calibrationBuffer = [];
     isCalibrated = false;
     hasLeftDeadZone = false;
@@ -192,6 +211,9 @@
     isActive = false;
     currentView = null;
     initialPitch = 0;
+    initialYaw = 0;
+    smoothYaw = 0;
+    smoothPitch = 0;
     calibrationBuffer = [];
     isCalibrated = false;
     hasLeftDeadZone = false;
