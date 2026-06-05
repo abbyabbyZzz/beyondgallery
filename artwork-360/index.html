@@ -759,7 +759,7 @@
          * A-Frame: negative X pitch ≈ look up toward wall / artwork height.
          * Tune INITIAL_CAMERA_PITCH (e.g. −10 … −18) if needed.
          */
-        var INITIAL_CAMERA_PITCH = -45;
+        var INITIAL_CAMERA_PITCH = -17;
         var INITIAL_CAMERA_YAW = 0;
 
         var DEFAULT_META = {
@@ -1009,7 +1009,7 @@
           // Hard-code yaw to 0 so the opening view faces the artwork wall.
           // (The old A-Frame sky rotation mapping pointed at side corridors.)
           var yaw = 0;
-          var pitch = degToRad(-INITIAL_CAMERA_PITCH);
+          var pitch = degToRad(INITIAL_CAMERA_PITCH);
           return {
             yaw: yaw,
             pitch: pitch,
