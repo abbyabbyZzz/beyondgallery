@@ -1007,7 +1007,8 @@
               return !isNaN(x);
             });
           var ry = parts.length > 1 ? parts[1] : -90;
-          var yaw = degToRad(ry) + degToRad(INITIAL_CAMERA_YAW);
+          // Flip sign: A-Frame sky rotation Y is clockwise; Marzipano yaw is CCW from -Z
+          var yaw = -degToRad(ry) + degToRad(INITIAL_CAMERA_YAW);
           var pitch = degToRad(-INITIAL_CAMERA_PITCH);
           return {
             yaw: yaw,
