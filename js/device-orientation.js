@@ -15,11 +15,6 @@
   var YAW_SENSITIVITY = 6.5;
   var PITCH_SENSITIVITY = 1.8;
 
-  // Exponential smoothing to filter hand tremor while keeping high sensitivity
-  var smoothYaw = 0;
-  var smoothPitch = 0;
-  var SMOOTHING = 0.15;
-
   // Smooth calibration: average the first N samples so the view
   // stays at the scene's initial angle briefly regardless of phone angle
   var CALIBRATION_SAMPLES = 12;
@@ -38,6 +33,19 @@
 
   function clamp(v, min, max) {
     return Math.max(min, Math.min(max, v));
+  }
+
+  function normalizeBetaDelta(d) {
+    if (d > 180) d -= 360;
+    if (d < -180) d += 360;
+    return d;
+  }
+
+  function normalizeGammaDelta(d) {
+    // gamma range is [-90, 90]; wrap-around jump is 180
+    if (d > 90) d -= 180;
+    if (d < -90) d += 180;
+    return d;
   }
 
   function getScreenOrientation() {
@@ -75,7 +83,9 @@
 
   function onDeviceOrientation(e) {
     if (!isActive || !currentView) return;
-    if (e.beta === null || e.gamma === null) return;
+    if (e.beta == null || e.gamma == null) return;
+    if (typeof e.beta !== 'number' || typeof e.gamma !== 'number') return;
+    if (isNaN(e.beta) || isNaN(e.gamma)) return;
 
     // Smooth calibration: collect first N samples before applying motion
     if (!isCalibrated) {
@@ -97,8 +107,8 @@
       return;
     }
 
-    var dBeta = e.beta - baseBeta;
-    var dGamma = e.gamma - baseGamma;
+    var dBeta = normalizeBetaDelta(e.beta - baseBeta);
+    var dGamma = normalizeGammaDelta(e.gamma - baseGamma);
 
     // Dead zone: keep showing the painting until the user actively rotates the phone
     if (!hasLeftDeadZone) {
@@ -136,13 +146,9 @@
     var targetYaw = initialYaw + rawYaw;
     var targetPitch = initialPitch + rawPitch;
 
-    // Exponential smoothing to kill hand tremor while preserving large intentional motion
-    smoothYaw += (targetYaw - smoothYaw) * SMOOTHING;
-    smoothPitch += (targetPitch - smoothPitch) * SMOOTHING;
-
     try {
-      currentView.setYaw(smoothYaw);
-      currentView.setPitch(smoothPitch);
+      currentView.setYaw(targetYaw);
+      currentView.setPitch(targetPitch);
     } catch (err) {}
   }
 
@@ -187,9 +193,7 @@
       initialYaw = 0;
     }
 
-    // Reset smoothing and calibration state on every attach (scene switch)
-    smoothYaw = initialYaw;
-    smoothPitch = initialPitch;
+    // Reset calibration state on every attach (scene switch)
     calibrationBuffer = [];
     isCalibrated = false;
     hasLeftDeadZone = false;
@@ -212,8 +216,6 @@
     currentView = null;
     initialPitch = 0;
     initialYaw = 0;
-    smoothYaw = 0;
-    smoothPitch = 0;
     calibrationBuffer = [];
     isCalibrated = false;
     hasLeftDeadZone = false;
