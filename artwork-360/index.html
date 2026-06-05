@@ -297,13 +297,14 @@
 
       @media (orientation: portrait) and (max-width: 768px) {
         #detail-root {
-          padding: 20px 16px 160px;
+          padding: 20px 16px 100px;
         }
         .detail-back-row {
           top: auto;
-          bottom: 120px;
+          bottom: 14px;
           justify-content: center;
           padding: 0 14px;
+          gap: 8px;
         }
         .back-home,
         .back-exhibition {
@@ -311,6 +312,17 @@
           font-size: 9px;
           letter-spacing: 2px;
         }
+        .edge-nav {
+          top: 50%;
+          bottom: auto;
+          transform: translateY(-50%);
+          width: 40px;
+          height: 40px;
+          border-radius: 999px;
+          font-size: 16px;
+        }
+        .edge-nav.left { left: 8px; }
+        .edge-nav.right { right: 8px; }
         .detail-card {
           width: calc(100vw - 16px);
           border-radius: 14px;
