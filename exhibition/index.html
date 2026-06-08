@@ -726,6 +726,20 @@
         } else {
           boot();
         }
+
+        // Reset to p1 when the page is restored from bfcache (e.g. back from main menu)
+        window.addEventListener('pageshow', function (e) {
+          if (e.persisted) {
+            currentPoint = 'p1';
+            try {
+              sessionStorage.removeItem('gallery_last_exhibition_point');
+            } catch (err) {}
+            if (window.ExhibitionMarzipano && typeof ExhibitionMarzipano.switchToPoint === 'function') {
+              ExhibitionMarzipano.switchToPoint('p1');
+            }
+            updateTourChrome();
+          }
+        });
       })();
     </script>
   </body>

@@ -248,6 +248,11 @@
       var soundWith = document.getElementById('sound-with');
       var soundWithout = document.getElementById('sound-without');
 
+      // 每次回到主页时清空 exhibition 浏览进度，确保下次从 p1 开始
+      try {
+        sessionStorage.removeItem('gallery_last_exhibition_point');
+      } catch (e) {}
+
       // 处理“有声 / 无声”体验选择，只在第一次进入时显示
       (function initSoundChoice() {
         var alreadySet = false;
