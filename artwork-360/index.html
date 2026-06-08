@@ -649,7 +649,7 @@
       <a
         href="../exhibition/index.html"
         class="back-exhibition"
-        onclick="navigateWithTransition('../exhibition/index.html'); return false;"
+        onclick="(function(){ var u='../exhibition/index.html'; try{ var p=sessionStorage.getItem('gallery_last_exhibition_point'); if(p) u+='?point='+encodeURIComponent(p); }catch(e){} navigateWithTransition(u); })(); return false;"
         >Back to Exhibition</a
       >
     </div>

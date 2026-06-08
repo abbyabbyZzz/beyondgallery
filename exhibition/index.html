@@ -662,6 +662,9 @@
         fadeEl.classList.add('active');
         setTimeout(function () {
           currentPoint = pointId;
+          try {
+            sessionStorage.setItem('gallery_last_exhibition_point', currentPoint);
+          } catch (e) {}
           if (window.ExhibitionMarzipano && typeof ExhibitionMarzipano.switchToPoint === 'function') {
             ExhibitionMarzipano.switchToPoint(currentPoint);
           }
@@ -696,6 +699,14 @@
 
       (function () {
         function boot() {
+          // Resume from last panorama if returning from artwork detail
+          try {
+            var params = new URLSearchParams(window.location.search);
+            var pointParam = params.get('point');
+            if (pointParam && TOUR_POINTS[pointParam]) {
+              currentPoint = pointParam;
+            }
+          } catch (e) {}
           initPointDropdown();
           initWorkDropdown();
           if (window.ExhibitionMarzipano && typeof ExhibitionMarzipano.init === 'function') {
